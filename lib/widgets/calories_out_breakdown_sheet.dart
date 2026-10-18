@@ -4,6 +4,7 @@ import '../services/locale_service.dart';
 import '../services/storage_service.dart';
 import '../screens/main_screen.dart';
 import 'app_ui_components.dart';
+import 'marquee_text.dart';
 
 class CaloriesOutBreakdownSheet extends StatefulWidget {
   final int currentSteps;
@@ -383,14 +384,14 @@ class _CaloriesOutBreakdownSheetState extends State<CaloriesOutBreakdownSheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
+                MarqueeText(
                   title,
                   style: const TextStyle(color: Colors.white54, fontSize: 11),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
-                Text(
+                MarqueeText(
                   value,
                   style: const TextStyle(
                     color: Colors.white,
@@ -804,7 +805,7 @@ class _CaloriesOutBreakdownSheetState extends State<CaloriesOutBreakdownSheet> {
                                                 child: Column(
                                                   crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
-                                                    Text(
+                                                    MarqueeText(
                                                       title,
                                                       style: const TextStyle(
                                                         color: Colors.white,

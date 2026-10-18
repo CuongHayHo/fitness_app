@@ -3,6 +3,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../services/health_sync_service.dart';
 import '../../services/locale_service.dart';
 import '../../theme.dart';
+import '../../widgets/marquee_text.dart';
 
 class ProfileHealthConnectCard extends StatefulWidget {
   const ProfileHealthConnectCard({super.key});
@@ -104,7 +105,7 @@ class _ProfileHealthConnectCardState extends State<ProfileHealthConnectCard> {
                       ),
                     ),
                     const SizedBox(height: 2),
-                    Text(
+                    MarqueeText(
                       LocaleService.tr('health_connect_sub'),
                       style: const TextStyle(
                         color: AppColors.textSecondary,
@@ -322,8 +323,8 @@ class _ProfileHealthConnectCardState extends State<ProfileHealthConnectCard> {
                     ),
                     onPressed: () => _syncService.connect(),
                     icon: const Icon(Icons.link_rounded, size: 18),
-                    label: const Text(
-                      'KẾT NỐI HEALTH CONNECT / WATCH',
+                    label: Text(
+                      LocaleService.tr('health_connect_button'),
                       style: TextStyle(
                         fontWeight: FontWeight.w900,
                         fontSize: 12,
@@ -370,7 +371,7 @@ class _ProfileHealthConnectCardState extends State<ProfileHealthConnectCard> {
                     ),
                   ),
                   const SizedBox(height: 1),
-                  Text(
+                  MarqueeText(
                     value,
                     style: const TextStyle(
                       color: Colors.white,

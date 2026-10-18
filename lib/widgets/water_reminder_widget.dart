@@ -10,6 +10,7 @@ import 'package:figma_squircle/figma_squircle.dart';
 import 'app_ui_components.dart';
 import '../utils/app_haptics.dart';
 import '../services/achievement_service.dart';
+import 'marquee_text.dart';
 
 class WaterReminderWidget extends StatefulWidget {
   final DateTime? selectedDate;
@@ -609,7 +610,7 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    MarqueeText(
                       LocaleService.tr('water_reminder_title'),
                       style: AppTheme.font(
                         fontSize: 15,
@@ -621,7 +622,7 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
-                    Text(
+                    MarqueeText(
                       LocaleService.tr('water_reminder_sub'),
                       style: AppTheme.font(fontSize: 11, color: Colors.white54),
                       maxLines: 1,
@@ -743,7 +744,7 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
                             ),
                           ),
                           const SizedBox(height: 3),
-                          Text(
+                          MarqueeText(
                             LocaleService.tr(
                               'water_cups_count',
                               args: {'cups': '$_cups', 'goal': '$_goalCups'},

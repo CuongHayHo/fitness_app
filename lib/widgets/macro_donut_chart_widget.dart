@@ -5,6 +5,7 @@ import '../models/user_profile.dart';
 import '../theme.dart';
 import '../services/storage_service.dart';
 import '../services/locale_service.dart';
+import 'marquee_text.dart';
 
 class MacroDonutChartWidget extends StatefulWidget {
   final VoidCallback? onGoalChanged;
@@ -132,7 +133,7 @@ class _MacroDonutChartWidgetState extends State<MacroDonutChartWidget> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          MarqueeText(
                             LocaleService.tr('macro_breakdown_title'),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -142,7 +143,7 @@ class _MacroDonutChartWidgetState extends State<MacroDonutChartWidget> {
                               color: Colors.white,
                             ),
                           ),
-                          Text(
+                          MarqueeText(
                             LocaleService.tr('macro_breakdown_subtitle'),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -385,7 +386,7 @@ class _MacroDonutChartWidgetState extends State<MacroDonutChartWidget> {
                   ),
                   const SizedBox(width: 4),
                   Flexible(
-                    child: Text(
+                    child: MarqueeText(
                       title,
                       style: AppTheme.font(
                         fontSize: 12,

@@ -67,7 +67,7 @@ ios/ macos/ linux/ windows/ web/   Thư mục nền tảng do Flutter sinh ra, h
 
 **Đếm bước nền**: `StepCounterService` (foreground service, `foregroundServiceType="health"`, `START_STICKY`) đăng ký `TYPE_STEP_COUNTER` với batching 10 s; `BootReceiver` khởi động lại sau boot/cập nhật app; `FitnessAppWidgetProvider` đọc prefs để vẽ widget. Dart cần quyền `ACTIVITY_RECOGNITION` (xin ở `step_counter_widget.dart`).
 
-**AI**: `GeminiService` (`google_generative_ai`, chuỗi model `gemini-3.8-flash` → `gemini-3.7-flash` → `gemini-2.5-flash` (`_modelChain`), mỗi tầng trước tầng cuối có timeout riêng nên model treo im lặng vẫn được bỏ qua; tên model là hằng số ở đầu `GeminiService`. 3.8/3.7 hay trả 503 hoặc treo với yêu cầu ảnh, 2.5-flash là tầng ổn định. Model Gemini bị Google tắt định kỳ — `gemini-2.0-flash` và `1.5-flash` đã ngừng, nên kiểm tra lại danh sách model khi AI báo lỗi). Thực phẩm: `OpenFoodFactsService` (barcode qua `mobile_scanner`). Giọng nói: `SpeechService`.
+**AI**: `GeminiService` (`google_generative_ai`, chỉ dùng một model `gemini-2.5-flash` (hằng số `_modelName` ở đầu `GeminiService`, gọi qua `_generate()` / `_generateStream()`, không có model dự phòng). Đã bỏ 3.8/3.7 vì hay trả 503/429 hoặc treo > 90 s với ảnh, còn 2.5-flash ổn định 3–7 s. Model Gemini bị Google tắt định kỳ — `gemini-2.0-flash` và `1.5-flash` đã ngừng, nên kiểm tra lại danh sách model khi AI báo lỗi). Thực phẩm: `OpenFoodFactsService` (barcode qua `mobile_scanner`). Giọng nói: `SpeechService`.
 
 ## Cạm bẫy cần biết trước khi sửa
 

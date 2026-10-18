@@ -3,6 +3,7 @@ import '../services/locale_service.dart';
 import '../services/storage_service.dart';
 import '../screens/main_screen.dart';
 import 'app_ui_components.dart';
+import 'marquee_text.dart';
 
 class CaloriesInHistorySheet extends StatefulWidget {
   final DateTime? date;
@@ -454,7 +455,7 @@ class _CaloriesInHistorySheetState extends State<CaloriesInHistorySheet> {
                                           ],
                                         ),
                                         const SizedBox(height: 4),
-                                        Text(
+                                        MarqueeText(
                                           entry.name,
                                           style: const TextStyle(
                                             fontSize: 14,

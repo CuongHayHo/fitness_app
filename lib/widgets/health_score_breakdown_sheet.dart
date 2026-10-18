@@ -4,6 +4,7 @@ import '../services/storage_service.dart';
 import '../screens/main_screen.dart';
 import 'health_score_widget.dart';
 import 'app_ui_components.dart';
+import 'marquee_text.dart';
 
 class HealthScoreBreakdownSheet extends StatefulWidget {
   final int currentSteps;
@@ -582,7 +583,7 @@ class _HealthScoreBreakdownSheetState extends State<HealthScoreBreakdownSheet> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: Text(
+                child: MarqueeText(
                   detailText,
                   style: const TextStyle(color: Color(0xFF8E95A9), fontSize: 12),
                   maxLines: 1,

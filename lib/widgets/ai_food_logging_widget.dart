@@ -10,6 +10,7 @@ import '../utils/app_haptics.dart';
 import '../services/achievement_service.dart';
 import 'app_ui_components.dart';
 import 'barcode_scanner_sheet.dart';
+import 'marquee_text.dart';
 
 class AiFoodLoggingWidget extends StatefulWidget {
   final VoidCallback? onFoodUpdated;
@@ -824,7 +825,7 @@ class _AiFoodLoggingWidgetState extends State<AiFoodLoggingWidget>
                           const Icon(Icons.camera_alt_rounded, color: Colors.black, size: 18),
                           const SizedBox(width: 6),
                           Flexible(
-                            child: Text(
+                            child: MarqueeText(
                               LocaleService.tr('log_food_camera_btn'),
                               style: const TextStyle(
                                 color: Colors.black,
@@ -875,7 +876,7 @@ class _AiFoodLoggingWidgetState extends State<AiFoodLoggingWidget>
                           const Icon(Icons.qr_code_scanner_rounded, color: Colors.white, size: 19),
                           const SizedBox(width: 6),
                           Flexible(
-                            child: Text(
+                            child: MarqueeText(
                               LocaleService.tr('log_food_barcode_btn'),
                               style: const TextStyle(
                                 color: Colors.white,
@@ -936,7 +937,7 @@ class _AiFoodLoggingWidgetState extends State<AiFoodLoggingWidget>
                         });
                       },
                       icon: const Icon(Icons.keyboard_alt_outlined, color: Colors.white70, size: 18),
-                      label: Text(
+                      label: MarqueeText(
                         LocaleService.tr('type_with_keyboard'),
                         style: const TextStyle(
                           color: Colors.white70,
@@ -1341,7 +1342,7 @@ class _AiFoodLoggingWidgetState extends State<AiFoodLoggingWidget>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
-                      child: Text(
+                      child: MarqueeText(
                         food.name,
                         style: const TextStyle(
                           color: Colors.white,
@@ -1381,7 +1382,7 @@ class _AiFoodLoggingWidgetState extends State<AiFoodLoggingWidget>
                     const SizedBox(width: 10),
                     // Expanded + ellipsis: dòng macro co lại thay vì tràn khỏi thẻ trên màn hình hẹp
                     Expanded(
-                      child: Text(
+                      child: MarqueeText(
                         'P: ${food.protein}g  •  C: ${food.carbs}g  •  F: ${food.fat}g',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

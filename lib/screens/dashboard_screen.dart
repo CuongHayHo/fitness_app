@@ -18,6 +18,7 @@ import '../widgets/badge_unlock_dialog.dart';
 import '../services/locale_service.dart';
 import '../services/achievement_service.dart';
 import 'dart:async';
+import '../widgets/marquee_text.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -247,7 +248,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ],
                               ),
                               const SizedBox(height: 2),
-                              Text(
+                              MarqueeText(
                                 _userName,
                                 style: const TextStyle(
                                   fontSize: 18,
@@ -373,7 +374,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                               const SizedBox(width: 8),
                               Flexible(
-                                child: Text(
+                                child: MarqueeText(
                                   _getDateNavigationLabel(),
                                   style: TextStyle(
                                     fontSize: 14,

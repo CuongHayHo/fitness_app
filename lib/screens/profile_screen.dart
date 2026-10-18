@@ -21,6 +21,7 @@ import 'profile/profile_hero_card.dart';
 import 'profile/profile_language_card.dart';
 import 'profile/profile_macro_blueprint_card.dart';
 import 'profile/profile_security_report_card.dart';
+import '../widgets/marquee_text.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -350,7 +351,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                           ),
                         ),
                         const SizedBox(height: 2),
-                        Text(
+                        MarqueeText(
                           LocaleService.tr('profile_subtitle'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,

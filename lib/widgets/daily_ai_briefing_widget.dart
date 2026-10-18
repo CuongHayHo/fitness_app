@@ -6,6 +6,7 @@ import '../services/storage_service.dart';
 import '../services/locale_service.dart';
 import '../utils/app_formatters.dart';
 import 'app_ui_components.dart';
+import 'marquee_text.dart';
 
 class DailyAiBriefingWidget extends StatefulWidget {
   final DateTime selectedDate;
@@ -174,7 +175,7 @@ class _DailyAiBriefingWidgetState extends State<DailyAiBriefingWidget>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          MarqueeText(
                             LocaleService.tr('daily_briefing_title'),
                             style: const TextStyle(
                               fontSize: 12.5,
@@ -211,7 +212,7 @@ class _DailyAiBriefingWidgetState extends State<DailyAiBriefingWidget>
                               ),
                               const SizedBox(width: 6),
                               Expanded(
-                                child: Text(
+                                child: MarqueeText(
                                   LocaleService.tr('daily_briefing_yesterday_review'),
                                   style: TextStyle(
                                     fontSize: 10,
@@ -496,7 +497,7 @@ class _DailyAiBriefingWidgetState extends State<DailyAiBriefingWidget>
               Text(emoji, style: const TextStyle(fontSize: 10)),
               const SizedBox(width: 3),
               Flexible(
-                child: Text(
+                child: MarqueeText(
                   label,
                   style: TextStyle(
                     fontSize: 9,
@@ -509,7 +510,7 @@ class _DailyAiBriefingWidgetState extends State<DailyAiBriefingWidget>
             ],
           ),
           const SizedBox(height: 3),
-          Text(
+          MarqueeText(
             value,
             style: TextStyle(
               fontSize: 11,

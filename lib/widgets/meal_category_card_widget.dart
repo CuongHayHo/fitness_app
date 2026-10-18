@@ -12,6 +12,7 @@ import '../services/locale_service.dart';
 import '../utils/app_haptics.dart';
 import '../models/favorite_food.dart';
 import 'app_ui_components.dart';
+import 'marquee_text.dart';
 
 class MealCategoryCardWidget extends StatefulWidget {
   final String mealType; // 'Breakfast', 'Lunch', 'Dinner', 'Snack'
@@ -317,7 +318,7 @@ class _MealCategoryCardWidgetState extends State<MealCategoryCardWidget> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
+                              MarqueeText(
                                 item.name,
                                 style: AppTheme.font(
                                   fontSize: 14,

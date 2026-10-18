@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../models/favorite_food.dart';
+import '../services/locale_service.dart';
 import '../services/storage_service.dart';
 import '../theme.dart';
 import '../utils/app_haptics.dart';
 import 'app_ui_components.dart';
+import 'marquee_text.dart';
 
 class QuickFavoritesFoodBar extends StatefulWidget {
   final VoidCallback? onFoodAdded;
@@ -61,7 +63,7 @@ class _QuickFavoritesFoodBarState extends State<QuickFavoritesFoodBar> {
               const Icon(Icons.check_circle, color: Color(0xFF00F0FF), size: 18),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
+                child: MarqueeText(
                   '${fav.name} (+${fav.calories} kcal) đã được thêm vào $mealType!',
                   style: const TextStyle(color: Colors.white, fontSize: 13),
                   overflow: TextOverflow.ellipsis,
@@ -109,7 +111,7 @@ class _QuickFavoritesFoodBarState extends State<QuickFavoritesFoodBar> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      MarqueeText(
                         fav.name,
                         style: AppTheme.font(
                           fontSize: 16,
@@ -388,7 +390,7 @@ class _QuickFavoritesFoodBarState extends State<QuickFavoritesFoodBar> {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  'Món Ăn Quen Thuộc',
+                  LocaleService.tr('favorites_title'),
                   style: AppTheme.font(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -407,7 +409,7 @@ class _QuickFavoritesFoodBarState extends State<QuickFavoritesFoodBar> {
                     const Icon(Icons.add, color: Color(0xFF00F0FF), size: 16),
                     const SizedBox(width: 2),
                     Text(
-                      'Thêm món',
+                      LocaleService.tr('favorites_add'),
                       style: AppTheme.font(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -436,7 +438,7 @@ class _QuickFavoritesFoodBarState extends State<QuickFavoritesFoodBar> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Chưa có món yêu thích. Bấm biểu tượng ❤️ ở món ăn hoặc bấm "+ Thêm món" để lưu nhanh!',
+                    LocaleService.tr('favorites_empty_hint'),
                     style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 12),
                   ),
                 ),
@@ -502,7 +504,7 @@ class _QuickFavoritesFoodBarState extends State<QuickFavoritesFoodBar> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
+                            MarqueeText(
                               fav.name,
                               style: AppTheme.font(
                                 fontSize: 13,

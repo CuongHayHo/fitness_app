@@ -3,6 +3,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../services/storage_service.dart';
 import '../services/locale_service.dart';
 import '../theme.dart';
+import 'marquee_text.dart';
 
 class BadgesAchievementWidget extends StatefulWidget {
   final int currentSteps;
@@ -322,7 +323,7 @@ class BadgesAchievementWidgetState extends State<BadgesAchievementWidget> {
                             ),
                           ),
                           const SizedBox(height: 2),
-                          Text(
+                          MarqueeText(
                             LocaleService.tr('achievements_card_sub'),
                             style: const TextStyle(
                               fontSize: 11,
@@ -470,7 +471,7 @@ class BadgesAchievementWidgetState extends State<BadgesAchievementWidget> {
             ),
             const SizedBox(height: 8),
             // Title
-            Text(
+            MarqueeText(
               badge.title,
               textAlign: TextAlign.center,
               maxLines: 1,
@@ -485,7 +486,7 @@ class BadgesAchievementWidgetState extends State<BadgesAchievementWidget> {
             ),
             const SizedBox(height: 4),
             // Progress or Unlocked Text
-            Text(
+            MarqueeText(
               badge.isUnlocked
                   ? LocaleService.tr('unlocked_badge_label')
                   : badge.progressText,

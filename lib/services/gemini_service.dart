@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import '../models/user_profile.dart';
+import 'locale_service.dart';
 
 class FoodInfo {
   final String name;
@@ -38,16 +39,9 @@ class FoodInfo {
 }
 
 class GeminiService {
-  static const String _modelName = 'gemini-3.8-flash';
-  static const String _fallbackModelName = 'gemini-3.7-flash';
-  // Tầng dự phòng cuối: model ổn định. Ngày 18/10/2026 cả 3.8 và 3.7 treo > 90 s với yêu cầu ảnh
-  // (quá tải phía Google) trong khi 2.5-flash trả kết quả ~6 s.
-  static const String _stableFallbackModelName = 'gemini-2.5-flash';
-  static const List<String> _modelChain = [
-    _modelName,
-    _fallbackModelName,
-    _stableFallbackModelName,
-  ];
+  // Chỉ dùng gemini-2.5-flash: đo trên thiết bị (18/10/2026) cho kết quả ổn định 3–7 s với cả ảnh
+  // và văn bản, trong khi các model 3.x thường quá tải (503/429) hoặc phản hồi rất chậm.
+  static const String _modelName = 'gemini-2.5-flash';
   static String _runtimeApiKey = '';
 
   /// Khóa Gemini API với thứ tự ưu tiên an toàn:
@@ -68,82 +62,42 @@ class GeminiService {
   static bool get hasValidApiKey =>
       apiKey.isNotEmpty && apiKey != 'YOUR_GEMINI_API_KEY_HERE';
 
+  /// Ngôn ngữ đầu ra theo ngôn ngữ giao diện hiện tại (khóa JSON vẫn giữ tiếng Anh)
+  static String get _outputLanguage => LocaleService.isVietnamese ? 'Vietnamese' : 'English';
+
   /// Tạo instance GenerativeModel
-  static GenerativeModel _createModel({
-    String? modelName,
-    Content? systemInstruction,
-  }) {
+  static GenerativeModel _createModel({Content? systemInstruction}) {
     return GenerativeModel(
-      model: modelName ?? _modelName,
+      model: _modelName,
       apiKey: apiKey,
       systemInstruction: systemInstruction,
     );
   }
 
-  /// Gọi API theo chuỗi 3.8 → 3.7 → 2.5-flash, chuyển tầng khi model lỗi hoặc treo.
-  /// Mỗi tầng trước tầng cuối có timeout riêng (`primaryTimeout`): model treo im lặng
-  /// (không ném lỗi) vẫn được bỏ qua, thay vì để timeout tổng của nơi gọi nuốt mất lượt dự phòng.
-  static Future<GenerateContentResponse> _generateWithFallback(
+  /// Gọi API Gemini (một lần, không có model dự phòng)
+  static Future<GenerateContentResponse> _generate(
     List<Content> contents, {
     Content? systemInstruction,
-    Duration primaryTimeout = const Duration(seconds: 20),
-  }) async {
-    for (var i = 0; i < _modelChain.length; i++) {
-      final model = _modelChain[i];
-      final isLast = i == _modelChain.length - 1;
-      try {
-        final request = _createModel(
-          modelName: model,
-          systemInstruction: systemInstruction,
-        ).generateContent(contents);
-        return isLast ? await request : await request.timeout(primaryTimeout);
-      } catch (err) {
-        if (isLast) rethrow;
-        debugPrint(
-          "⚠️ [GeminiService] Model $model lỗi: $err. Tự động chuyển đổi sang dự phòng (${_modelChain[i + 1]})...",
-        );
-      }
-    }
-    throw StateError('Chuỗi model Gemini rỗng');
+  }) {
+    return _createModel(systemInstruction: systemInstruction).generateContent(contents);
   }
 
-  /// Gọi API Streaming với cơ chế tự động chuyển sang model dự phòng nếu gặp sự cố
-  static Stream<String> _generateStreamWithFallback(
+  /// Gọi API Streaming; lỗi kết nối được trả về dưới dạng một tin nhắn cho người dùng
+  static Stream<String> _generateStream(
     List<Content> contents, {
     Content? systemInstruction,
   }) async* {
-    for (var i = 0; i < _modelChain.length; i++) {
-      final model = _modelChain[i];
-      final isLast = i == _modelChain.length - 1;
-      var yieldedAny = false;
-      try {
-        var responseStream = _createModel(
-          modelName: model,
-          systemInstruction: systemInstruction,
-        ).generateContentStream(contents);
-        // Chờ tối đa 20s giữa các chunk; model treo thì chuyển sang tầng kế tiếp
-        if (!isLast) {
-          responseStream = responseStream.timeout(const Duration(seconds: 20));
+    try {
+      final responseStream =
+          _createModel(systemInstruction: systemInstruction).generateContentStream(contents);
+      await for (final chunk in responseStream) {
+        if (chunk.text != null && chunk.text!.isNotEmpty) {
+          yield chunk.text!;
         }
-        await for (final chunk in responseStream) {
-          if (chunk.text != null && chunk.text!.isNotEmpty) {
-            yieldedAny = true;
-            yield chunk.text!;
-          }
-        }
-        return;
-      } catch (err) {
-        // Đã trả một phần câu trả lời thì không chạy lại từ đầu bằng model khác (tránh lặp nội dung)
-        if (yieldedAny) return;
-        if (isLast) {
-          debugPrint("Gemini Stream Error: $err");
-          yield "Lỗi kết nối với AI ($err). Vui lòng thử lại sau!";
-          return;
-        }
-        debugPrint(
-          "⚠️ [GeminiService Stream] Model $model lỗi: $err. Chuyển đổi sang dự phòng (${_modelChain[i + 1]})...",
-        );
       }
+    } catch (err) {
+      debugPrint("Gemini Stream Error: $err");
+      yield "Lỗi kết nối với AI ($err). Vui lòng thử lại sau!";
     }
   }
 
@@ -236,7 +190,7 @@ Input: "$text"
 
 MANDATORY: Return ONLY one valid JSON object matching the schema below without any extra text or markdown code blocks:
 {
-  "name": "Short food name (in English)",
+  "name": "Short food name (in $_outputLanguage)",
   "calories": (integer estimate in kcal),
   "protein": (integer estimate in grams),
   "carbs": (integer estimate in grams),
@@ -245,7 +199,7 @@ MANDATORY: Return ONLY one valid JSON object matching the schema below without a
 ''';
 
     try {
-      final response = await _generateWithFallback([Content.text(prompt)]);
+      final response = await _generate([Content.text(prompt)]);
       String? resText = response.text;
       if (resText != null) {
         final parsed = parseFoodJson(resText);
@@ -451,10 +405,9 @@ MANDATORY: Return ONLY one valid JSON object matching the schema below without a
 }
 ''';
 
-      final response = await _generateWithFallback(
-        [Content.text(prompt)],
-        primaryTimeout: const Duration(seconds: 8),
-      ).timeout(const Duration(seconds: 25));
+      final response = await _generate([Content.text(prompt)]).timeout(
+        const Duration(seconds: 12),
+      );
 
       final resText = response.text;
       if (resText != null) {
@@ -508,7 +461,7 @@ If multiple food items are on the plate, combine them into one meal name and tot
 
 MANDATORY: Return ONLY a valid JSON object matching this exact schema:
 {
-  "name": "Food or meal name (in Vietnamese or English, e.g. Phở Bò, Cơm Tấm, hoặc Grilled Chicken Salad)",
+  "name": "Food or meal name in $_outputLanguage (e.g. ${LocaleService.isVietnamese ? 'Phở Bò, Cơm Tấm' : 'Beef Pho, Grilled Chicken Salad'})",
   "calories": (realistic integer estimate in kcal),
   "protein": (realistic integer estimate in grams),
   "carbs": (realistic integer estimate in grams),
@@ -524,8 +477,8 @@ MANDATORY: Return ONLY a valid JSON object matching this exact schema:
         ])
       ];
       // 20s cho model chính + phần còn lại cho model dự phòng
-      final response = await _generateWithFallback(content)
-          .timeout(const Duration(seconds: 60));
+      final response = await _generate(content)
+          .timeout(const Duration(seconds: 30));
 
       final resText = response.text;
       if (resText != null) {
@@ -588,7 +541,7 @@ Bối cảnh dinh dưỡng thực tế hôm nay:
 Phong cách trả lời:
 - Nhiệt tình, truyền cảm hứng, chuyên nghiệp và súc tích (khoảng 2-4 đoạn hoặc gạch đầu dòng rõ ràng).
 - Liên kết chặt chẽ số liệu hôm nay với mục tiêu sinh trắc học cá nhân của người dùng (ví dụ: đang muốn siết mỡ hay tăng cơ, thiếu protein so với mục tiêu ${userProfile?.targetMacros['protein'] ?? 150}g, calo thâm hụt hay dư thừa so với TDEE).
-- Sử dụng tiếng Việt thân thiện, dễ hiểu, có emoji sinh động.
+- Sử dụng ${LocaleService.isVietnamese ? 'tiếng Việt' : 'tiếng Anh (English)'} thân thiện, dễ hiểu, có emoji sinh động.
 ''';
 
     try {
@@ -605,7 +558,7 @@ Phong cách trả lời:
 
       chatHistory.add(Content.text(message));
 
-      final response = await _generateWithFallback(
+      final response = await _generate(
         chatHistory,
         systemInstruction: Content.system(systemInstruction),
       );
@@ -665,7 +618,7 @@ Bối cảnh dinh dưỡng thực tế hôm nay:
 Phong cách trả lời:
 - Nhiệt tình, truyền cảm hứng, chuyên nghiệp và súc tích (khoảng 2-4 đoạn hoặc gạch đầu dòng rõ ràng).
 - Liên kết chặt chẽ số liệu hôm nay với mục tiêu sinh trắc học cá nhân của người dùng.
-- Sử dụng tiếng Việt thân thiện, dễ hiểu, có emoji sinh động.
+- Sử dụng ${LocaleService.isVietnamese ? 'tiếng Việt' : 'tiếng Anh (English)'} thân thiện, dễ hiểu, có emoji sinh động.
 ''';
 
     final List<Content> chatHistory = [];
@@ -681,7 +634,7 @@ Phong cách trả lời:
 
     chatHistory.add(Content.text(message));
 
-    yield* _generateStreamWithFallback(
+    yield* _generateStream(
       chatHistory,
       systemInstruction: Content.system(systemInstruction),
     );
@@ -726,16 +679,16 @@ $userBioContext
 
 MANDATORY REQUIREMENT: Return ONLY a valid JSON object matching the exact structure below, without any markdown formatting or extra commentary:
 {
-  "title": "Inspiring routine title in English",
+  "title": "Inspiring routine title in $_outputLanguage",
   "durationMinutes": $durationMinutes,
   "targetGoal": "$goal",
   "estimatedCalories": (realistic integer between 70 and 450 depending on duration),
   "exercises": [
     {
-      "name": "Exercise Name (e.g., Dumbbell Floor Press, Push-ups, Goblet Squat)",
+      "name": "Exercise name in $_outputLanguage (e.g., Dumbbell Floor Press, Push-ups, Goblet Squat)",
       "sets": (integer 2 to 4),
-      "repsOrDuration": "e.g., 12 reps or 45s",
-      "formNote": "Concise key form tip for safety and effectiveness"
+      "repsOrDuration": "e.g., ${LocaleService.isVietnamese ? '12 lần hoặc 45 giây' : '12 reps or 45s'}",
+      "formNote": "Concise key form tip for safety and effectiveness, in $_outputLanguage"
     }
   ]
 }
@@ -743,7 +696,7 @@ MANDATORY REQUIREMENT: Return ONLY a valid JSON object matching the exact struct
 
     if (hasValidApiKey) {
       try {
-        final response = await _generateWithFallback([Content.text(prompt)]);
+        final response = await _generate([Content.text(prompt)]);
         final raw = response.text;
         if (raw != null) {
           String cleanText = raw
@@ -1079,7 +1032,7 @@ Ví dụ phong cách: "Hôm qua bạn thâm hụt 867 kcal rất tốt, nhưng m
 Ngôn ngữ: ${isVietnamese ? 'Tiếng Việt' : 'English'}
 ''';
 
-        final response = await _generateWithFallback([Content.text(prompt)]);
+        final response = await _generate([Content.text(prompt)]);
         final text = response.text;
         if (text != null && text.isNotEmpty) {
           String cleanText = text

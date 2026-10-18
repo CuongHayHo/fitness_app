@@ -8,6 +8,7 @@ import 'calories_in_history_sheet.dart';
 import 'calories_out_breakdown_sheet.dart';
 import 'calorie_balance_history_sheet.dart';
 import 'app_ui_components.dart';
+import 'marquee_text.dart';
 
 class CalorieBalanceHeroWidget extends StatefulWidget {
   final int currentSteps;
@@ -114,7 +115,7 @@ class _CalorieBalanceHeroWidgetState extends State<CalorieBalanceHeroWidget> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    MarqueeText(
                       LocaleService.tr('energy_balance_title'),
                       style: const TextStyle(
                         fontSize: 14,
@@ -126,7 +127,7 @@ class _CalorieBalanceHeroWidgetState extends State<CalorieBalanceHeroWidget> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
-                    Text(
+                    MarqueeText(
                       LocaleService.tr('energy_balance_subtitle'),
                       style: const TextStyle(
                         fontSize: 11,
@@ -238,7 +239,7 @@ class _CalorieBalanceHeroWidgetState extends State<CalorieBalanceHeroWidget> {
                             const HugeIcon(icon: HugeIcons.strokeRoundedRestaurant, size: 14, color: Color(0xFF00F0FF)),
                             const SizedBox(width: 6),
                             Expanded(
-                              child: Text(
+                              child: MarqueeText(
                                 LocaleService.tr('calories_in'),
                                 style: const TextStyle(
                                   fontSize: 11,
@@ -267,7 +268,7 @@ class _CalorieBalanceHeroWidgetState extends State<CalorieBalanceHeroWidget> {
                           ),
                         ),
                         const SizedBox(height: 2),
-                        Text(
+                        MarqueeText(
                           LocaleService.tr('from_ai_food'),
                           style: const TextStyle(
                             fontSize: 10.5,
@@ -313,7 +314,7 @@ class _CalorieBalanceHeroWidgetState extends State<CalorieBalanceHeroWidget> {
                             const HugeIcon(icon: HugeIcons.strokeRoundedFire, size: 14, color: Colors.orange),
                             const SizedBox(width: 6),
                             Expanded(
-                              child: Text(
+                              child: MarqueeText(
                                 LocaleService.tr('calories_out'),
                                 style: const TextStyle(
                                   fontSize: 11,
@@ -342,7 +343,7 @@ class _CalorieBalanceHeroWidgetState extends State<CalorieBalanceHeroWidget> {
                           ),
                         ),
                         const SizedBox(height: 2),
-                        Text(
+                        MarqueeText(
                           LocaleService.tr('from_bmr_steps'),
                           style: const TextStyle(
                             fontSize: 10.5,

@@ -9,6 +9,7 @@ import '../widgets/hydration_wave_widget.dart';
 import '../widgets/ai_nutritionist_chat_dialog.dart';
 import '../widgets/app_ui_components.dart';
 import 'ai_chat_history_screen.dart';
+import '../widgets/marquee_text.dart';
 
 class FoodScreen extends StatefulWidget {
   const FoodScreen({super.key});
@@ -93,7 +94,7 @@ class _FoodScreenState extends State<FoodScreen> {
                             ),
                             const SizedBox(width: 8),
                             Expanded(
-                              child: Text(
+                              child: MarqueeText(
                                 _formatDate().toUpperCase(),
                                 style: AppTheme.font(
                                   fontSize: 11,
@@ -108,7 +109,7 @@ class _FoodScreenState extends State<FoodScreen> {
                           ],
                         ),
                         const SizedBox(height: 4),
-                        Text(
+                        MarqueeText(
                           LocaleService.tr('nutrition_hub_title'),
                           style: AppTheme.font(
                             fontSize: 22,

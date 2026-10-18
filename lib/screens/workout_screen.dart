@@ -12,6 +12,7 @@ import '../widgets/workout_setup_sheet.dart';
 import '../widgets/muscle_anatomy_map_widget.dart';
 import '../widgets/exercise_guide_sheet.dart';
 import 'active_workout_screen.dart';
+import '../widgets/marquee_text.dart';
 
 enum ExerciseEquipmentFilter { all, bodyweight, dumbbell }
 
@@ -1177,7 +1178,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                                 ),
                                 const SizedBox(width: 6),
                                 Flexible(
-                                  child: Text(
+                                  child: MarqueeText(
                                     ExerciseGuideData.getForExercise(ex.title).targetMuscles,
                                     style: const TextStyle(color: Colors.white70, fontSize: 11),
                                     overflow: TextOverflow.ellipsis,

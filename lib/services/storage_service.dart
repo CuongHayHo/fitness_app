@@ -1084,7 +1084,7 @@ class StorageService {
       }
     }
 
-    FirestoreService().saveWorkoutLog(workoutMap);
+    // WorkoutRepository tự đẩy lên Firestore sau khi ghi SQLite (không gửi trùng ở đây)
     try {
       await WorkoutRepository.instance.logCompletedWorkout(
         durationMinutes: durationMinutes,
@@ -1393,7 +1393,7 @@ class StorageService {
       }
     }
 
-    FirestoreService().saveFoodLog(entry);
+    // NutritionRepository tự đẩy lên Firestore sau khi ghi SQLite (không gửi trùng ở đây)
     try {
       await NutritionRepository.instance.saveFoodLog(entry);
     } catch (_) {}

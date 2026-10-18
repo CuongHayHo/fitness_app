@@ -11,6 +11,7 @@ import '../utils/app_haptics.dart';
 import '../services/achievement_service.dart';
 import '../services/notification_service.dart';
 import '../widgets/exercise_guide_sheet.dart';
+import '../widgets/marquee_text.dart';
 
 class ActiveWorkoutScreen extends StatefulWidget {
   final String title;
@@ -58,6 +59,10 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
   late int _targetSets;
   int _currentReps = 0;
   late int _targetReps;
+  // Số reps người dùng thực sự đếm được ở mỗi hiệp đã hoàn thành (để ghi nhật ký đúng thực tế)
+  final List<int> _repsPerSet = [];
+  int? _loggedSets;
+  int? _loggedReps;
   double? _weightKg;
   String? _equipment;
   late int _restDurationSeconds;
@@ -220,6 +225,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
         _isRepsMode = isReps;
         _currentSet = 1;
         _currentReps = 0;
+        _repsPerSet.clear();
         _isResting = false;
         _restTimer?.cancel();
         if (_isRepsMode) {
@@ -262,6 +268,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
 
   void _completeCurrentSet() {
     AppHaptics.heavy();
+    _repsPerSet.add(_currentReps);
     if (_currentSet < _targetSets) {
       setState(() {
         _isResting = true;
@@ -401,12 +408,21 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
         : (_totalSeconds - _remainingSeconds);
     final durationMinutes = elapsedSeconds > 0 ? (elapsedSeconds + 59) ~/ 60 : 1;
 
+    // Kết thúc giữa chừng: tính cả hiệp đang tập nếu đã đếm rep
+    if (_isRepsMode && _currentReps > 0 && _repsPerSet.length < _currentSet) {
+      _repsPerSet.add(_currentReps);
+    }
+    final countedReps = _repsPerSet.fold<int>(0, (sum, r) => sum + r);
+    // Người dùng không dùng bộ đếm (0 rep) thì giữ giá trị mục tiêu như cấu hình
+    final loggedSets = countedReps > 0 ? _repsPerSet.length : _targetSets;
+    final loggedReps = countedReps > 0 ? (countedReps / _repsPerSet.length).round() : _targetReps;
+
     StorageService.logCompletedWorkout(
       durationMinutes: durationMinutes,
       title: _currentTitle,
       calories: _currentCalories,
-      sets: _isRepsMode ? _targetSets : null,
-      reps: _isRepsMode ? _targetReps : null,
+      sets: _isRepsMode ? loggedSets : null,
+      reps: _isRepsMode ? loggedReps : null,
       weightKg: _hasWeight ? _weightKg : null,
       equipment: _equipment,
     );
@@ -415,6 +431,8 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
     setState(() {
       _isRunning = false;
       _isCompleted = true;
+      _loggedSets = loggedSets;
+      _loggedReps = loggedReps;
     });
     _showCompletionDialog();
   }
@@ -550,7 +568,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                                 const Icon(Icons.repeat_rounded, color: Color(0xFFFF9F0A), size: 24),
                                 const SizedBox(height: 4),
                                 Text(
-                                  '$_targetSets × $_targetReps',
+                                  '${_loggedSets ?? _targetSets} × ${_loggedReps ?? _targetReps}',
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
@@ -717,7 +735,7 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
             icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28),
             onPressed: _confirmExit,
           ),
-          title: Text(
+          title: MarqueeText(
             _currentTitle,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

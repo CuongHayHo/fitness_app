@@ -4,6 +4,7 @@ import '../models/user_profile.dart';
 import '../models/chat_message.dart';
 import '../screens/ai_chat_history_screen.dart';
 import '../theme.dart';
+import '../utils/chat_markdown.dart';
 import '../services/gemini_service.dart';
 import '../services/storage_service.dart';
 import '../services/locale_service.dart';
@@ -341,12 +342,14 @@ class _AiNutritionistChatDialogState extends State<AiNutritionistChatDialog> {
                             : Colors.white12,
                       ),
                     ),
-                    child: Text(
-                      msg['text'] ?? '',
-                      style: AppTheme.font(
-                        fontSize: 13,
-                        height: 1.4,
-                        color: isUser ? Colors.white : Colors.white.withValues(alpha: 0.9),
+                    child: Text.rich(
+                      chatMarkdownSpan(
+                        msg['text'] ?? '',
+                        AppTheme.font(
+                          fontSize: 13,
+                          height: 1.4,
+                          color: isUser ? Colors.white : Colors.white.withValues(alpha: 0.9),
+                        ),
                       ),
                     ),
                   ),

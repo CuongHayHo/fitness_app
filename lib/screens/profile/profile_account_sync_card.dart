@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../services/auth_service.dart';
 import '../../services/locale_service.dart';
 import '../../theme.dart';
+import '../../widgets/marquee_text.dart';
 
 class ProfileAccountSyncCard extends StatelessWidget {
   final bool isGuest;
@@ -186,7 +187,7 @@ class ProfileAccountSyncCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 6),
                     Flexible(
-                      child: Text(
+                      child: MarqueeText(
                         LocaleService.tr('account_section_title'),
                         style: const TextStyle(
                           fontSize: 12,
@@ -256,7 +257,7 @@ class ProfileAccountSyncCard extends StatelessWidget {
                         color: Colors.white,
                       ),
                     ),
-                    Text(
+                    MarqueeText(
                       user.email ?? '',
                       style: const TextStyle(
                         fontSize: 12,

@@ -7,6 +7,7 @@ import '../services/storage_service.dart';
 import '../screens/active_workout_screen.dart';
 import '../theme.dart';
 import '../utils/app_haptics.dart';
+import 'marquee_text.dart';
 
 class AiCoachCardWidget extends StatefulWidget {
   final VoidCallback? onWorkoutStarted;
@@ -268,7 +269,7 @@ class _AiCoachCardWidgetState extends State<AiCoachCardWidget> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    MarqueeText(
                       LocaleService.tr('ai_coach_title'),
                       style: const TextStyle(
                         fontSize: 16,
@@ -314,7 +315,7 @@ class _AiCoachCardWidgetState extends State<AiCoachCardWidget> {
                   ),
                   const SizedBox(width: 6),
                   Expanded(
-                    child: Text(
+                    child: MarqueeText(
                       LocaleService.tr(
                         'ai_synced_badge',
                         args: {

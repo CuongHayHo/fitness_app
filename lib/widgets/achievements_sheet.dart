@@ -6,6 +6,7 @@ import '../services/achievement_service.dart';
 import '../services/locale_service.dart';
 import '../utils/app_haptics.dart';
 import 'app_ui_components.dart';
+import 'marquee_text.dart';
 
 class AchievementsSheet extends StatefulWidget {
   const AchievementsSheet({super.key});
@@ -330,7 +331,7 @@ class _AchievementsSheetState extends State<AchievementsSheet> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Flexible(
-                      child: Text(
+                      child: MarqueeText(
                         title,
                         style: TextStyle(
                           fontSize: 14,

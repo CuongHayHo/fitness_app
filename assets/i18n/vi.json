@@ -420,5 +420,14 @@
   "health_stat_heart_rate": "Nhịp tim",
   "health_stat_sleep": "Giấc ngủ",
   "health_stat_steps": "Bước chân",
-  "health_stat_active_cal": "Calo tiêu hao"
+  "health_stat_active_cal": "Calo tiêu hao",
+  "favorites_title": "Món Ăn Quen Thuộc",
+  "favorites_add": "Thêm món",
+  "favorites_empty_hint": "Chưa có món yêu thích. Bấm biểu tượng ❤️ ở món ăn hoặc bấm \"+ Thêm món\" để lưu nhanh!",
+  "health_connect_button": "KẾT NỐI HEALTH CONNECT / WATCH",
+  "ai_history_badge_local": "LƯU TRÊN MÁY",
+  "ai_history_count_local": "{count} tin nhắn • Lưu trên thiết bị",
+  "ai_history_count_cloud": "{count} tin nhắn • Cloud Firestore Sync",
+  "barcode_pick_image": "Chọn ảnh mã vạch từ thư viện",
+  "barcode_not_found_in_image": "Không tìm thấy mã vạch trong ảnh đã chọn."
 }

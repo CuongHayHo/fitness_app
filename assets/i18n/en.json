@@ -5,7 +5,7 @@
   "nav_profile": "Profile",
   "hello_user": "HELLO, {name}",
   "dashboard_subtitle": "Track real-time energy & nutrition",
-  "streak_days": "{count} Days",
+  "streak_days": "{count}-day streak",
   "daily_briefing_title": "DAILY AI COACH BRIEFING",
   "daily_briefing_tag": "DAILY AI PT",
   "daily_briefing_refresh": "Refresh Briefing",
@@ -420,5 +420,14 @@
   "health_stat_heart_rate": "Heart Rate",
   "health_stat_sleep": "Sleep",
   "health_stat_steps": "Steps",
-  "health_stat_active_cal": "Active Burn"
+  "health_stat_active_cal": "Active Burn",
+  "favorites_title": "Favorite Foods",
+  "favorites_add": "Add food",
+  "favorites_empty_hint": "No favorites yet. Tap ❤️ on a food or tap \"+ Add food\" to save it for quick logging!",
+  "health_connect_button": "CONNECT HEALTH CONNECT / WATCH",
+  "ai_history_badge_local": "ON DEVICE",
+  "ai_history_count_local": "{count} messages • Stored on device",
+  "ai_history_count_cloud": "{count} messages • Cloud Firestore Sync",
+  "barcode_pick_image": "Pick a barcode image from gallery",
+  "barcode_not_found_in_image": "No barcode found in the selected image."
 }

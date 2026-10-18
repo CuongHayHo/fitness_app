@@ -5,7 +5,9 @@ import '../models/chat_message.dart';
 import '../services/locale_service.dart';
 import '../services/storage_service.dart';
 import '../theme.dart';
+import '../utils/chat_markdown.dart';
 import '../widgets/ai_nutritionist_chat_dialog.dart';
+import '../widgets/marquee_text.dart';
 
 class AiChatHistoryScreen extends StatefulWidget {
   const AiChatHistoryScreen({super.key});
@@ -18,6 +20,8 @@ class _AiChatHistoryScreenState extends State<AiChatHistoryScreen> {
   final TextEditingController _searchController = TextEditingController();
   List<ChatMessage> _allMessages = [];
   bool _isLoading = true;
+  // Chế độ Khách: lịch sử chỉ lưu trên máy, không hiện nhãn đồng bộ Cloud
+  bool _isGuest = false;
   String _selectedFilter = 'all'; // 'all' | 'user' | 'model'
 
   @override
@@ -36,9 +40,11 @@ class _AiChatHistoryScreenState extends State<AiChatHistoryScreen> {
 
   Future<void> _loadMessages() async {
     final list = await StorageService.getLocalChatHistory(limit: 300);
+    final isGuest = await StorageService.isGuestMode();
     if (mounted) {
       setState(() {
         _allMessages = list;
+        _isGuest = isGuest;
         _isLoading = false;
       });
     }
@@ -196,7 +202,7 @@ class _AiChatHistoryScreenState extends State<AiChatHistoryScreen> {
                 letterSpacing: 0.5,
               ),
             ),
-            Text(
+            MarqueeText(
               LocaleService.tr('chat_history_sub'),
               style: AppTheme.font(
                 fontSize: 11,
@@ -239,10 +245,14 @@ class _AiChatHistoryScreenState extends State<AiChatHistoryScreen> {
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.cloud_done_rounded, color: AppColors.primary, size: 12),
+                            Icon(
+                              _isGuest ? Icons.phone_android_rounded : Icons.cloud_done_rounded,
+                              color: AppColors.primary,
+                              size: 12,
+                            ),
                             const SizedBox(width: 4),
                             Text(
-                              LocaleService.tr('ai_history_badge'),
+                              LocaleService.tr(_isGuest ? 'ai_history_badge_local' : 'ai_history_badge'),
                               style: const TextStyle(
                                 fontSize: 9,
                                 fontWeight: FontWeight.w900,
@@ -256,7 +266,10 @@ class _AiChatHistoryScreenState extends State<AiChatHistoryScreen> {
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: Text(
-                          '${_allMessages.length} tin nhắn • Cloud Firestore Sync',
+                          LocaleService.tr(
+                            _isGuest ? 'ai_history_count_local' : 'ai_history_count_cloud',
+                            args: {'count': '${_allMessages.length}'},
+                          ),
                           style: const TextStyle(
                             fontSize: 11,
                             color: AppColors.textSecondary,
@@ -476,13 +489,15 @@ class _AiChatHistoryScreenState extends State<AiChatHistoryScreen> {
           const SizedBox(height: 8),
 
           // Message Body
-          SelectableText(
-            msg.text,
-            style: TextStyle(
-              fontSize: 13,
-              height: 1.45,
-              color: isUser ? Colors.white : Colors.white.withValues(alpha: 0.92),
-              fontWeight: isUser ? FontWeight.w500 : FontWeight.w400,
+          SelectableText.rich(
+            chatMarkdownSpan(
+              msg.text,
+              TextStyle(
+                fontSize: 13,
+                height: 1.45,
+                color: isUser ? Colors.white : Colors.white.withValues(alpha: 0.92),
+                fontWeight: isUser ? FontWeight.w500 : FontWeight.w400,
+              ),
             ),
           ),
         ],

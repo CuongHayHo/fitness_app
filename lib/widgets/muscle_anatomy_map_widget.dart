@@ -3,6 +3,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../theme.dart';
 import '../utils/app_haptics.dart';
 import 'exercise_guide_sheet.dart';
+import 'marquee_text.dart';
 
 enum MuscleSide { left, right }
 
@@ -1033,7 +1034,7 @@ class _MuscleAnatomyMapWidgetState extends State<MuscleAnatomyMapWidget> {
                   const SizedBox(width: 5),
                 ],
                 Flexible(
-                  child: Text(
+                  child: MarqueeText(
                     muscle.nameVi,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -1058,7 +1059,7 @@ class _MuscleAnatomyMapWidgetState extends State<MuscleAnatomyMapWidget> {
               ],
             ),
             const SizedBox(height: 1),
-            Text(
+            MarqueeText(
               muscle.nameEn.split(' ').first,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

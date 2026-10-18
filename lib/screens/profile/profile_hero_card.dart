@@ -3,6 +3,7 @@ import '../../models/user_profile.dart';
 import '../../services/auth_service.dart';
 import '../../services/locale_service.dart';
 import '../../theme.dart';
+import '../../widgets/marquee_text.dart';
 
 class ProfileHeroCard extends StatelessWidget {
   final UserProfile profile;
@@ -129,7 +130,7 @@ class ProfileHeroCard extends StatelessWidget {
                   Row(
                     children: [
                       Flexible(
-                        child: Text(
+                        child: MarqueeText(
                           (user?.displayName != null &&
                                   user!.displayName!.isNotEmpty)
                               ? user.displayName!
@@ -191,7 +192,7 @@ class ProfileHeroCard extends StatelessWidget {
                             size: 12, color: AppColors.info),
                         const SizedBox(width: 4),
                         Flexible(
-                          child: Text(
+                          child: MarqueeText(
                             user.email!,
                             style: const TextStyle(
                               fontSize: 11,

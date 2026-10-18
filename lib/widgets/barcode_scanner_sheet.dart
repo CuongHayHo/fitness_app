@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import '../services/locale_service.dart';
 import '../services/open_food_facts_service.dart';
 import '../services/storage_service.dart';
 import '../services/gemini_service.dart';
@@ -105,6 +107,27 @@ class _BarcodeScannerSheetState extends State<BarcodeScannerSheet>
         _isProcessing = false;
         _errorMessage = 'Đã có lỗi xảy ra khi tra cứu: $e';
       });
+    }
+  }
+
+  /// Đọc mã vạch từ ảnh có sẵn trong thư viện (ML Kit phân tích ảnh tĩnh qua analyzeImage)
+  Future<void> _pickBarcodeFromGallery() async {
+    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (picked == null || !mounted) return;
+    try {
+      final capture = await _scannerController.analyzeImage(picked.path);
+      final code = capture?.barcodes
+          .map((b) => b.rawValue)
+          .firstWhere((v) => v != null && v.isNotEmpty, orElse: () => null);
+      if (!mounted) return;
+      if (code == null) {
+        setState(() => _errorMessage = LocaleService.tr('barcode_not_found_in_image'));
+        return;
+      }
+      await _handleBarcodeDetected(code);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _errorMessage = LocaleService.tr('barcode_not_found_in_image'));
     }
   }
 
@@ -348,12 +371,22 @@ class _BarcodeScannerSheetState extends State<BarcodeScannerSheet>
             ),
           ),
 
-        // Top Toolbar (Torch & Camera Switch)
+        // Top Toolbar (Gallery, Torch & Camera Switch)
         Positioned(
           top: 16,
           right: 20,
           child: Row(
             children: [
+              IconButton.filledTonal(
+                tooltip: LocaleService.tr('barcode_pick_image'),
+                onPressed: _isProcessing ? null : _pickBarcodeFromGallery,
+                icon: const Icon(Icons.photo_library_rounded, size: 20),
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.black45,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+              const SizedBox(width: 8),
               IconButton.filledTonal(
                 onPressed: () => _scannerController.toggleTorch(),
                 icon: const Icon(Icons.flash_on_rounded, size: 20),

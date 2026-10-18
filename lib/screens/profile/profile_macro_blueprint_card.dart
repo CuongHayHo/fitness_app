@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../../services/locale_service.dart';
 import '../../theme.dart';
+import '../../widgets/marquee_text.dart';
 
 class ProfileMacroBlueprintCard extends StatelessWidget {
   final Map<String, int> targetMacros;
@@ -39,7 +40,7 @@ class ProfileMacroBlueprintCard extends StatelessWidget {
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
-                      child: Text(
+                      child: MarqueeText(
                         LocaleService.tr('macro_blueprint_title'),
                         style: const TextStyle(
                           fontSize: 13,

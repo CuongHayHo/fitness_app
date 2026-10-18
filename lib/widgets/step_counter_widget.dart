@@ -9,6 +9,7 @@ import '../theme.dart';
 import '../services/locale_service.dart';
 import '../services/storage_service.dart';
 import 'step_history_sheet.dart';
+import 'marquee_text.dart';
 
 class StepCounterWidget extends StatefulWidget {
   final int goalSteps;
@@ -204,7 +205,7 @@ class _StepCounterWidgetState extends State<StepCounterWidget> with WidgetsBindi
                     ),
                     const SizedBox(width: 8),
                     Flexible(
-                      child: Text(
+                      child: MarqueeText(
                         LocaleService.tr('step_counter_title'),
                         style: const TextStyle(
                           fontSize: 14,

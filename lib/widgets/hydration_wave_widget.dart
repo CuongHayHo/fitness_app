@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../theme.dart';
 import '../services/storage_service.dart';
 import '../services/locale_service.dart';
+import 'marquee_text.dart';
 
 class HydrationWaveWidget extends StatefulWidget {
   final VoidCallback? onWaterUpdated;
@@ -66,9 +67,26 @@ class _HydrationWaveWidgetState extends State<HydrationWaveWidget>
 
   bool get _hasFiberOrVeggies {
     final keywords = [
-      'rau', 'salad', 'cải', 'spinach', 'broccoli', 'vegetable', 'fruit',
-      'táo', 'chuối', 'cam', 'quinoa', 'oat', 'avocado', 'bơ', 'trái cây',
-      'berry', 'carrot', 'cà rốt', 'dưa', 'greens'
+      'rau',
+      'salad',
+      'cải',
+      'spinach',
+      'broccoli',
+      'vegetable',
+      'fruit',
+      'táo',
+      'chuối',
+      'cam',
+      'quinoa',
+      'oat',
+      'avocado',
+      'bơ',
+      'trái cây',
+      'berry',
+      'carrot',
+      'cà rốt',
+      'dưa',
+      'greens',
     ];
     for (final food in _todayFoods) {
       final nameLower = food.name.toLowerCase();
@@ -103,46 +121,59 @@ class _HydrationWaveWidgetState extends State<HydrationWaveWidget>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF00C6FF).withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: const Color(0xFF00C6FF).withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.water_drop_rounded,
-                      color: Color(0xFF00C6FF),
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        LocaleService.tr('hydration_micronutrients_title'),
-                        style: AppTheme.font(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
+              // Expanded: tiêu đề co lại (ellipsis) để số ml bên phải không bị đẩy tràn khỏi thẻ
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF00C6FF).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFF00C6FF).withValues(alpha: 0.3),
                         ),
                       ),
-                      Text(
-                        LocaleService.tr('hydration_target_daily', args: {'target': '$_targetVolumeMl'}),
-                        style: AppTheme.font(
-                          fontSize: 11,
-                          color: Colors.white38,
-                        ),
+                      child: const Icon(
+                        Icons.water_drop_rounded,
+                        color: Color(0xFF00C6FF),
+                        size: 20,
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          MarqueeText(
+                            LocaleService.tr('hydration_micronutrients_title'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTheme.font(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                          MarqueeText(
+                            LocaleService.tr(
+                              'hydration_target_daily',
+                              args: {'target': '$_targetVolumeMl'},
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTheme.font(
+                              fontSize: 11,
+                              color: Colors.white38,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Text(
                 '$_waterVolumeMl ml',
                 style: AppTheme.font(
@@ -195,7 +226,10 @@ class _HydrationWaveWidgetState extends State<HydrationWaveWidget>
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          LocaleService.tr('hydration_percent_reached', args: {'percent': '$percent'}),
+                          LocaleService.tr(
+                            'hydration_percent_reached',
+                            args: {'percent': '$percent'},
+                          ),
                           style: AppTheme.font(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
@@ -224,17 +258,11 @@ class _HydrationWaveWidgetState extends State<HydrationWaveWidget>
           // Quick Hydration Buttons
           Row(
             children: [
-              Expanded(
-                child: _buildQuickAddButton('+250ml', 250),
-              ),
+              Expanded(child: _buildQuickAddButton('+250ml', 250)),
               const SizedBox(width: 8),
-              Expanded(
-                child: _buildQuickAddButton('+500ml', 500),
-              ),
+              Expanded(child: _buildQuickAddButton('+500ml', 500)),
               const SizedBox(width: 8),
-              Expanded(
-                child: _buildQuickAddButton('+1,000ml', 1000),
-              ),
+              Expanded(child: _buildQuickAddButton('+1,000ml', 1000)),
               const SizedBox(width: 8),
               // Minus 250ml button
               Material(
@@ -375,7 +403,8 @@ class _WavePainter extends CustomPainter {
     path.lineTo(0, baseHeight);
 
     for (double x = 0; x <= size.width; x += 1) {
-      final y = baseHeight +
+      final y =
+          baseHeight +
           math.sin((x / size.width * 2 * math.pi) + wavePhase) * waveAmplitude;
       path.lineTo(x, y);
     }
@@ -388,6 +417,7 @@ class _WavePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _WavePainter oldDelegate) {
-    return oldDelegate.progress != progress || oldDelegate.wavePhase != wavePhase;
+    return oldDelegate.progress != progress ||
+        oldDelegate.wavePhase != wavePhase;
   }
 }

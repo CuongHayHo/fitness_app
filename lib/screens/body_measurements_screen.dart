@@ -13,6 +13,7 @@ import '../services/storage_service.dart';
 import '../theme.dart';
 import '../utils/app_haptics.dart';
 import '../widgets/before_after_slider_widget.dart';
+import '../widgets/marquee_text.dart';
 
 class BodyMeasurementsScreen extends StatefulWidget {
   const BodyMeasurementsScreen({super.key});
@@ -881,7 +882,7 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
               Icon(icon, color: color, size: 14),
               const SizedBox(width: 4),
               Expanded(
-                child: Text(
+                child: MarqueeText(
                   title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -891,7 +892,7 @@ class _BodyMeasurementsScreenState extends State<BodyMeasurementsScreen> {
             ],
           ),
           const SizedBox(height: 6),
-          Text(
+          MarqueeText(
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

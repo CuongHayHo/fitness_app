@@ -4,6 +4,7 @@ import '../../models/user_profile.dart';
 import '../../services/locale_service.dart';
 import '../../theme.dart';
 import '../body_measurements_screen.dart';
+import '../../widgets/marquee_text.dart';
 
 class ProfileBiometricsCard extends StatelessWidget {
   final UserProfile profile;
@@ -231,7 +232,7 @@ class ProfileBiometricsCard extends StatelessWidget {
               Icon(icon, color: color, size: 14),
               const SizedBox(width: 5),
               Expanded(
-                child: Text(
+                child: MarqueeText(
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -246,7 +247,7 @@ class ProfileBiometricsCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 6),
-          Text(
+          MarqueeText(
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

@@ -5,6 +5,7 @@ import '../../services/locale_service.dart';
 import '../../theme.dart';
 import '../ai_chat_history_screen.dart';
 import '../../services/storage_service.dart';
+import '../../widgets/marquee_text.dart';
 
 class ProfileAiInterconnectionCard extends StatelessWidget {
   final UserProfile profile;
@@ -111,7 +112,7 @@ class ProfileAiInterconnectionCard extends StatelessWidget {
                         const Icon(Icons.history_rounded, color: Color(0xFF00F0FF), size: 16),
                         const SizedBox(width: 6),
                         Flexible(
-                          child: Text(
+                          child: MarqueeText(
                             LocaleService.tr('view_chat_history_btn'),
                             style: const TextStyle(
                               fontSize: 11,
@@ -144,7 +145,7 @@ class ProfileAiInterconnectionCard extends StatelessWidget {
                         const Icon(Icons.vpn_key_rounded, color: Color(0xFF00F0FF), size: 16),
                         const SizedBox(width: 6),
                         Flexible(
-                          child: Text(
+                          child: MarqueeText(
                             LocaleService.isVietnamese ? 'Cài đặt API Key' : 'API Key Setup',
                             style: const TextStyle(
                               fontSize: 11,

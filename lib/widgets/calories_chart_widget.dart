@@ -10,6 +10,7 @@ import 'chart_history_sheet.dart';
 import 'weekly_calorie_bar_chart.dart';
 import 'weight_journey_chart.dart';
 import 'app_ui_components.dart';
+import 'marquee_text.dart';
 
 class CaloriesChartWidget extends StatefulWidget {
   final int currentSteps;
@@ -307,7 +308,7 @@ class _CaloriesChartWidgetState extends State<CaloriesChartWidget> {
                             ),
                           ),
                           const SizedBox(height: 2),
-                          Text(
+                          MarqueeText(
                             LocaleService.tr('calories_burned_sub'),
                             style: const TextStyle(
                               fontSize: 11,
@@ -457,7 +458,7 @@ class _CaloriesChartWidgetState extends State<CaloriesChartWidget> {
               const SizedBox(width: 10),
               // Expanded + ellipsis: chú thích phụ co lại thay vì tràn khỏi thẻ trên màn hình hẹp
               Expanded(
-                child: Text(
+                child: MarqueeText(
                   LocaleService.tr('chart_current_dot'),
                   textAlign: TextAlign.end,
                   maxLines: 1,
@@ -645,7 +646,7 @@ class _CaloriesChartWidgetState extends State<CaloriesChartWidget> {
             ),
           ),
           child: Center(
-            child: Text(
+            child: MarqueeText(
               label,
               style: TextStyle(
                 fontSize: 10.5,
@@ -671,7 +672,7 @@ class _CaloriesChartWidgetState extends State<CaloriesChartWidget> {
         ),
         child: Column(
           children: [
-            Text(
+            MarqueeText(
               label,
               style: TextStyle(
                 fontSize: 10,
@@ -682,7 +683,7 @@ class _CaloriesChartWidgetState extends State<CaloriesChartWidget> {
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 2),
-            Text(
+            MarqueeText(
               value,
               style: const TextStyle(
                 fontSize: 11,
