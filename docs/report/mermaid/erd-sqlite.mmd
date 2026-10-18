@@ -1,0 +1,83 @@
+erDiagram
+    WORKOUT_LOGS ||--o{ DAILY_WATER_HISTORY : "đồng quy theo ngày (date)"
+    FOOD_ENTRIES ||--o{ DAILY_WATER_HISTORY : "đồng quy theo ngày (date)"
+    BODY_MEASUREMENTS ||--o{ DAILY_WATER_HISTORY : "đồng quy theo ngày (date)"
+    PROGRESS_PHOTOS ||--o{ DAILY_WATER_HISTORY : "đồng quy theo ngày (date)"
+    FAVORITE_FOODS ||--o{ FOOD_ENTRIES : "mẫu thực phẩm lưu sẵn"
+
+    WORKOUT_LOGS {
+        integer id PK "Khóa chính tự tăng"
+        text title "Tên bài tập"
+        integer duration "Thời lượng (giây)"
+        integer calories "Lượng calo tiêu hao"
+        integer sets "Số hiệp thực hiện"
+        integer reps "Số lần lặp mỗi hiệp"
+        real weight "Khối lượng tạ (kg)"
+        text equipment "Dụng cụ tập luyện"
+        text timestamp "Thời điểm ghi nhận ISO8601"
+        text date "Ngày tập YYYY-MM-DD (Index)"
+    }
+
+    FOOD_ENTRIES {
+        text id PK "Khóa chính UUID chuỗi"
+        text name "Tên món ăn"
+        integer calories "Năng lượng (kcal)"
+        integer protein "Hàm lượng đạm (g)"
+        integer carbs "Hàm lượng đường bột (g)"
+        integer fat "Hàm lượng chất béo (g)"
+        text meal_type "Bữa ăn (breakfast/lunch/dinner/snack)"
+        text image_path "Đường dẫn ảnh món ăn"
+        text timestamp "Thời điểm ghi nhận ISO8601"
+        text date "Ngày ghi nhận YYYY-MM-DD (Index)"
+    }
+
+    DAILY_WATER_HISTORY {
+        text date PK "Ngày ghi nhận YYYY-MM-DD"
+        integer cups "Số cốc nước đã uống"
+        integer volume_ml "Thể tích nước (ml)"
+        text updated_at "Thời điểm cập nhật cuối"
+    }
+
+    CHAT_MESSAGES {
+        text id PK "Khóa chính UUID chuỗi"
+        text role "Vai trò (user / model)"
+        text text "Nội dung tin nhắn hội thoại"
+        text timestamp "Thời điểm gửi ISO8601 (Index)"
+    }
+
+    FAVORITE_FOODS {
+        text id PK "Khóa chính UUID chuỗi"
+        text name "Tên món ăn lưu sẵn (Index)"
+        integer calories "Năng lượng (kcal)"
+        integer protein "Hàm lượng đạm (g)"
+        integer carbs "Hàm lượng đường bột (g)"
+        integer fat "Hàm lượng chất béo (g)"
+        text serving_size "Khẩu phần mẫu"
+        text image_path "Đường dẫn ảnh món ăn"
+        text created_at "Thời điểm tạo mẫu"
+    }
+
+    BODY_MEASUREMENTS {
+        text id PK "Khóa chính UUID chuỗi"
+        text date "Ngày đo YYYY-MM-DD (Index)"
+        real weight "Cân nặng (kg)"
+        real neck_cm "Vòng cổ (cm)"
+        real chest_cm "Vòng ngực (cm)"
+        real waist_cm "Vòng eo (cm)"
+        real hips_cm "Vòng mông (cm)"
+        real bicep_cm "Vòng bắp tay (cm)"
+        real thigh_cm "Vòng đùi (cm)"
+        real body_fat_percent "Tỷ lệ mỡ ước tính (%)"
+        text notes "Ghi chú bổ sung"
+        text created_at "Thời điểm tạo bản ghi"
+    }
+
+    PROGRESS_PHOTOS {
+        text id PK "Khóa chính UUID chuỗi"
+        text date "Ngày chụp YYYY-MM-DD (Index)"
+        text image_path "Đường dẫn tệp ảnh lưu trữ"
+        text pose "Tư thế chụp (trước/sau/nghiêng)"
+        real weight "Cân nặng tại thời điểm chụp (kg)"
+        text notes "Ghi chú tiến trình"
+        text created_at "Thời điểm lưu ảnh"
+    }

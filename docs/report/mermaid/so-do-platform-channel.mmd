@@ -1,0 +1,31 @@
+sequenceDiagram
+    autonumber
+    participant Dart as Tầng Dart (UI / Logic)
+    participant PlatformChannel as MethodChannel / EventChannel (Dart)
+    participant BinaryMessenger as Flutter Engine (BinaryMessenger)
+    participant KotlinHandler as MethodChannel / EventChannel (Kotlin)
+    participant AndroidSystem as Android Framework / Native Services
+
+    Note over Dart, AndroidSystem: Cơ chế 1: MethodChannel (Giao tiếp hai chiều Request - Response)
+    Dart->>PlatformChannel: invokeMethod("methodName", arguments)
+    PlatformChannel->>BinaryMessenger: Tuần tự hóa nhị phân (StandardMethodCodec)
+    BinaryMessenger->>KotlinHandler: onMethodCall(call, result)
+    KotlinHandler->>AndroidSystem: Thực thi tác vụ native (Khởi động Service, kiểm tra quyền...)
+    AndroidSystem-->>KotlinHandler: Trả về kết quả thực thi
+    KotlinHandler-->>BinaryMessenger: result.success(value)
+    BinaryMessenger-->>PlatformChannel: Giải mã gói tin nhị phân
+    PlatformChannel-->>Dart: Trả về kết quả bất đồng bộ (Future)
+
+    Note over Dart, AndroidSystem: Cơ chế 2: EventChannel (Truyền luồng dữ liệu liên tục Stream)
+    Dart->>PlatformChannel: receiveBroadcastStream().listen(...)
+    PlatformChannel->>BinaryMessenger: Đăng ký StreamHandler
+    BinaryMessenger->>KotlinHandler: onListen(arguments, events)
+    loop Phát luồng dữ liệu sự kiện
+        AndroidSystem->>KotlinHandler: Sự kiện cảm biến phần cứng / BroadcastReceiver
+        KotlinHandler->>BinaryMessenger: eventSink.success(eventData)
+        BinaryMessenger->>PlatformChannel: Giải mã sự kiện nhị phân
+        PlatformChannel-->>Dart: Bắn sự kiện vào StreamSubscription (UI cập nhật)
+    end
+    Dart->>PlatformChannel: subscription.cancel()
+    PlatformChannel->>BinaryMessenger: Yêu cầu hủy luồng
+    BinaryMessenger->>KotlinHandler: onCancel(arguments)

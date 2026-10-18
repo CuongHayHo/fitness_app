@@ -27,7 +27,7 @@ Một ứng dụng theo dõi sức khỏe và thể hình thông minh trên nề
 
 ---
 
-### 🤖 2. Huấn luyện viên AI & Phân tích dinh dưỡng (Google Gemini 2.5 Flash)
+### 🤖 2. Huấn luyện viên AI & Phân tích dinh dưỡng (Google Gemini 3.8 Flash)
 - **Phân tích hình ảnh món ăn đa phương thức (Multimodal AI Vision)**: Chụp ảnh trực tiếp hoặc chọn từ thư viện, AI tự động nhận diện món ăn và ước lượng Calo, Đạm (Protein), Tinh bột (Carbs), Chất béo (Fat).
 - **Trò chuyện & Tư vấn 24/7**: Chatbot AI đóng vai huấn luyện viên thể hình cá nhân hóa, tư vấn dinh dưỡng và lịch tập dựa trên chỉ số sinh trắc học và lịch sử hoạt động thực tế.
 - **Bản tin sức khỏe hàng ngày (Daily AI Health Briefing)**: Đánh giá tự động chất lượng ngày tập luyện, giấc ngủ, lượng nước và đưa ra lời khuyên khởi động ngày mới.

@@ -1,0 +1,53 @@
+flowchart LR
+    subgraph Sec1 ["1. TIẾP NHẬN & KIỂM TRA SƠ BỘ"]
+        direction TB
+        Start(["<b>Cảm biến phần cứng phát sinh sự kiện</b><br/>onSensorChanged(TYPE_STEP_COUNTER)"])
+        ReadVal["<b>Đọc giá trị phần cứng:</b><br/>hardwareSteps = event.values[0].toInt()<br/><i>(Bộ đếm xung độc lập với CPU)</i>"]
+        CheckZero{"hardwareSteps &lt;= 0 ?"}
+        RetStored["<b>Bỏ qua xung nhiễu / Giữ nguyên:</b><br/>Trả về getStoredTodaySteps() đã lưu"]
+
+        Start --> ReadVal --> CheckZero
+        CheckZero -->|Đúng: &lt;= 0| RetStored
+    end
+
+    subgraph Sec2 ["2. ĐÁNH GIÁ MỐC NGÀY & PHÁT HIỆN REBOOT"]
+        direction TB
+        CheckDate{"savedDate != todayStr<br/>hoặc baseline == -1 ?"}
+        
+        subgraph SubBranches ["Xử lý 3 tình huống mốc hệ thống"]
+            direction TB
+            ResetDay["<b>Tình huống 1: Ngày mới / Chưa có mốc</b><br/>• baseline = hardwareSteps<br/>• rebootOffset = 0<br/>• flutter.today_steps = 0 (trả về 0)"]
+            
+            CheckReboot{"hardwareSteps &lt; baseline ?<br/><i>(Thiết bị vừa khởi động lại)</i>"}
+            HandleReboot["<b>Tình huống 2: Phát hiện Reboot</b><br/>• rebootOffset = getStoredTodaySteps()<br/>• baseline = hardwareSteps<br/>• Lưu mốc mới vào SharedPreferences"]
+            NormalFlow["<b>Tình huống 3: Tích lũy bình thường</b><br/>Duy trì baseline &amp; rebootOffset hiện hành"]
+
+            CheckReboot -->|Đúng: Reboot| HandleReboot
+            CheckReboot -->|Sai: Bình thường| NormalFlow
+        end
+
+        CheckDate -->|Đúng: Ngày mới| ResetDay
+        CheckDate -->|Sai: Cùng ngày| CheckReboot
+    end
+
+    subgraph Sec3 ["3. TÍNH TOÁN, PERSISTENCE & PHÂN PHỐI ĐA ĐÍCH"]
+        direction TB
+        CalcStep["<b>Công thức tính bước chân hôm nay:</b><br/>calculated = rebootOffset + (hardwareSteps - baseline)<br/><i>(Khống chế chặn dưới &gt;= 0 bước)</i>"]
+        SavePrefs[("<b>Lưu SharedPreferences (XML)</b><br/>key: flutter.today_steps = calculated<br/>Lưu trữ bền vững không phụ thuộc app")]
+
+        subgraph DispatchGroup ["Phân phối đồng thời 3 đích đến"]
+            direction TB
+            OutNoti["<b>1. Notification thường trực (Ongoing):</b><br/>NotificationManager.notify(NOTIFICATION_ID)<br/>Cập nhật thanh thông báo &amp; % mục tiêu 10k bước"]
+            OutBroadcast["<b>2. Luồng sự kiện giao diện Flutter:</b><br/>sendBroadcast(ACTION_STEP_UPDATE)<br/>➔ MainActivity (stepReceiver) ➔ EventChannel Stream"]
+            OutWidget["<b>3. Tiện ích màn hình chính (App Widget):</b><br/>FitnessAppWidgetProvider &amp; RAM Cache<br/>Đọc dữ liệu tức thời từ SharedPreferences"]
+            OutNoti --- OutBroadcast --- OutWidget
+        end
+
+        CalcStep --> SavePrefs
+        SavePrefs ==> DispatchGroup
+    end
+
+    CheckZero -->|Sai: &gt; 0| CheckDate
+    ResetDay ==> SavePrefs
+    HandleReboot ==> CalcStep
+    NormalFlow ==> CalcStep

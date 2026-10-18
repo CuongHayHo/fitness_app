@@ -1,0 +1,51 @@
+flowchart LR
+    subgraph Col1 ["1. LỚP PRESENTATION (GIAO DIỆN NGƯỜI DÙNG FLUTTER)"]
+        direction TB
+        UI_Screens["4 Tab Màn hình chính (IndexedStack)<br/>DashboardScreen | WorkoutScreen<br/>FoodScreen | ProfileScreen"]
+        UI_Widgets["Các thành phần giao diện chuyên biệt<br/>ExercisePoseWidget (CustomPainter)<br/>fl_chart | HydrationWave"]
+        UI_Theme["Hệ thống Giao diện tối & Khung nền<br/>AppTheme (OLED Dark)<br/>GlassmorphicNavBar (BackdropFilter)"]
+        UI_Gates["Cổng kiểm soát bảo mật & điều hướng<br/>AuthGate (Firebase Stream)<br/>BiometricGate (WidgetsBindingObserver)"]
+        UI_Screens --- UI_Widgets --- UI_Theme --- UI_Gates
+    end
+
+    subgraph Col2 ["2. STATE MANAGEMENT & SERVICES FACADE"]
+        direction TB
+        StorageFacade["<b>StorageService</b><br/>(Facade điều phối trung tâm)"]
+        Notifiers["<b>Scoped ValueNotifier (State):</b><br/>• stepUpdateNotifier • waterUpdateNotifier<br/>• foodUpdateNotifier • workoutUpdateNotifier<br/>• profileUpdateNotifier • chatUpdateNotifier<br/>• dataUpdateNotifier"]
+        Repos["<b>Domain Repositories:</b><br/>• StepRepository (Anti-jitter rate limiter)<br/>• WaterRepository (Midnight rollover)<br/>• WorkoutRepo • NutritionRepo • ChatRepo<br/>• BodyMeasurementRepo • AuthRepository"]
+        RAM_Cache["<b>Bộ nhớ đệm trong RAM (Cache):</b><br/>Map&lt;String, List&lt;T&gt;&gt; giảm I/O"]
+        StorageFacade --- Notifiers
+        StorageFacade --- Repos
+        Repos <--> RAM_Cache
+    end
+
+    subgraph Col3 ["3. LOCAL STORAGE & NATIVE ANDROID ENGINE"]
+        direction TB
+        SQLite_DB[("<b>Cơ sở dữ liệu SQLite (sqflite)</b><br/>fitness_tracker.db (7 bảng:<br/>workout, food, water, chat,<br/>favorite, body, photos)")]
+        Shared_Prefs["<b>Tệp SharedPreferences (XML)</b><br/>FlutterSharedPreferences.xml<br/>Lưu cấu hình, token, bước chân, mốc baseline và reboot offset"]
+        Bridge["<b>Cầu nối nền tảng (Platform Channels)</b><br/>MethodChannel ('.../service')<br/>EventChannel ('.../steps')"]
+        Native_Service["<b>Dịch vụ tiền cảnh (StepCounterService)</b><br/>TYPE_STEP_COUNTER chạy nền liên tục"]
+        Native_Aux["<b>Thành phần Native bổ trợ:</b><br/>• BootReceiver (Phục hồi sau reboot)<br/>• FitnessAppWidgetProvider (RemoteViews)"]
+        Bridge --- Native_Service
+        Native_Service --- Shared_Prefs
+        Native_Service --- Native_Aux
+    end
+
+    subgraph Col4 ["4. CLOUD SERVICES & EXTERNAL APIS"]
+        direction TB
+        Cloud_Sync["<b>FirestoreService</b><br/>Đồng bộ 2 chiều (2-Way Merge,<br/>WriteBatch &lt;= 400 ops)"]
+        Cloud_DB[("<b>Cloud Firestore (NoSQL)</b><br/>/users/{uid}/{sub_collections}")]
+        Firebase_Auth["<b>Firebase Authentication</b><br/>(Google Sign-In & Chế độ Khách)"]
+        Gemini_API["<b>Gemini AI Service</b><br/>(gemini-3.8-flash / gemini-3.7-flash)<br/>Tư vấn dinh dưỡng & bài tập"]
+        OpenFood_API["<b>Open Food Facts REST API</b><br/>Tra cứu mã vạch thực phẩm"]
+        Cloud_Sync --- Cloud_DB
+        Cloud_Sync --- Firebase_Auth
+        Cloud_Sync --- Gemini_API
+        Cloud_Sync --- OpenFood_API
+    end
+
+    UI_Screens ==> StorageFacade
+    StorageFacade ==> SQLite_DB
+    StorageFacade ==> Bridge
+    StorageFacade ==> Cloud_Sync
+    SQLite_DB -.->|Local-First Sync| Cloud_Sync

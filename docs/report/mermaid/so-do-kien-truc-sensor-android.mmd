@@ -1,0 +1,28 @@
+flowchart LR
+    subgraph L1 ["1. Tầng Phần Cứng (Hardware Layer)"]
+        HW_Sensor["<b>Cảm biến bước chân phần cứng</b><br/>(Hardware Step Counter)<br/>• TYPE_STEP_COUNTER<br/>• Đếm xung độc lập CPU"]
+        HW_FIFO["<b>Bộ đệm phần cứng FIFO</b><br/>(Hardware FIFO Buffer)<br/>• Lưu trữ ngắt chu kỳ 10s<br/>• CPU duy trì Deep Sleep"]
+    end
+
+    subgraph L2 ["2. Tầng Trình Điều Khiển & HAL"]
+        Driver["<b>Kernel Sensor Driver</b><br/>• Giao tiếp phần cứng I2C/SPI<br/>• Xử lý ngắt IRQ phần cứng"]
+        HAL["<b>Sensor HAL</b><br/>(Hardware Abstraction Layer)<br/>• sensors.default.so<br/>• Chuẩn hóa dữ liệu sự kiện"]
+    end
+
+    subgraph L3 ["3. Tầng Android Framework"]
+        SensorService["<b>Android Sensor Service</b><br/>• Quản lý client & hàng đợi<br/>• Điều phối cảm biến hệ điều hành"]
+        SensorManager["<b>SensorManager API</b><br/>• registerListener()<br/>• maxReportLatency = 10.000.000 us"]
+    end
+
+    subgraph L4 ["4. Tầng Ứng Dụng (Application Layer)"]
+        StepService["<b>StepCounterService</b><br/>• Foreground Service (health)<br/>• Tính toán Baseline & Reboot offset"]
+        AppTargets["<b>Phân phối & Hiển thị</b><br/>• EventChannel đẩy UI Flutter<br/>• FitnessAppWidgetProvider<br/>• Notification thường trực"]
+    end
+
+    HW_Sensor -->|Phát xung ngắt bước| Driver
+    HW_FIFO -->|Đọc theo chu kỳ batch 10s| HAL
+    Driver -->|Nạp dữ liệu cảm biến| SensorService
+    HAL -->|Cung cấp interface chuẩn| SensorManager
+    SensorService -->|Phân phối sự kiện| StepService
+    SensorManager -->|onSensorChanged| StepService
+    StepService -->|Đồng bộ thời gian thực| AppTargets

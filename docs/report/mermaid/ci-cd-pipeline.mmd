@@ -1,0 +1,51 @@
+flowchart LR
+    subgraph DevSection ["1. Phát triển & Cô lập kiểm thử"]
+        direction TB
+        subgraph DevEnvironment["1. Môi trường phát triển cục bộ"]
+            A["Lập trình viên hiệu chỉnh mã nguồn"] --> B["Chạy phân tích: flutter analyze & flutter test"]
+        end
+
+        subgraph TestIsolation["2. Cô lập kiểm thử dữ liệu (FLUTTER_TEST)"]
+            D{"Phát hiện cờ FLUTTER_TEST?"}
+            E["sqflite_common_ffi: sqfliteFfiInit<br/>SQLite inMemoryDatabasePath trên RAM"]
+            G["SharedPreferences.setMockInitialValues<br/>Giả lập bộ nhớ Key-Value"]
+            H["Thực thi 123 bài kiểm thử<br/>(Unit & Widget test đạt 100%)"]
+            B --> D
+            D -- Có --> E & G
+            E & G --> H
+        end
+
+        subgraph ConfigSecurity["3. Quản lý cấu hình & Bí mật"]
+            K[".env thực tế<br/>(Gitignore loại trừ)"] -.-> L["Không đẩy lên GitHub"]
+            M[".env.example mẫu"] --> N["Kho mã nguồn GitHub"]
+            O["Khóa Gemini API"] --> P["Nạp lúc build qua --dart-define"]
+        end
+    end
+
+    subgraph GitHubActions["4. Quy trình CI/CD tự động (GitHub Actions)"]
+        direction TB
+        Trigger["Sự kiện Push / Pull Request vào nhánh chính"]
+        
+        subgraph SetupPhase ["Giai đoạn 1: Chuẩn bị môi trường"]
+            R["Bước 1: actions/checkout@v4"]
+            S["Bước 2: actions/setup-java@v4 (JDK 17)"]
+            T["Bước 3: subosito/flutter-action@v2 (Stable)"]
+            U["Bước 4: flutter pub get (Tải phụ thuộc)"]
+            R --> S --> T --> U
+        end
+
+        subgraph GatePhase ["Giai đoạn 2: Chốt chặn chất lượng"]
+            V["Chốt chặn 1: flutter analyze<br/>0 lỗi cảnh báo"]
+            W["Chốt chặn 2: flutter test<br/>123/123 test đạt"]
+            X["Chốt chặn 3: flutter build apk --debug<br/>Biên dịch hoàn tất"]
+            V & W --> X
+        end
+
+        Artifact["Mã nguồn đạt chuẩn chất lượng — Sẵn sàng phát hành"]
+        Trigger --> R
+        U --> V & W
+        X --> Artifact
+    end
+
+    H -->|Đạt 123 test| N
+    N --> Trigger

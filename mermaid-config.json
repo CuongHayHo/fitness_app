@@ -1,0 +1,34 @@
+{
+  "theme": "default",
+  "themeVariables": {
+    "fontFamily": "Segoe UI, Arial, sans-serif",
+    "fontSize": "20px",
+    "primaryColor": "#e8f4fd",
+    "primaryBorderColor": "#1976d2",
+    "primaryTextColor": "#111827",
+    "lineColor": "#374151",
+    "actorFontSize": "20px",
+    "messageFontSize": "20px",
+    "noteFontSize": "18px"
+  },
+  "flowchart": {
+    "htmlLabels": true,
+    "curve": "basis",
+    "nodeSpacing": 45,
+    "rankSpacing": 45,
+    "padding": 15
+  },
+  "sequence": {
+    "actorFontSize": 20,
+    "actorFontFamily": "Segoe UI, Arial, sans-serif",
+    "messageFontSize": 20,
+    "messageFontFamily": "Segoe UI, Arial, sans-serif",
+    "noteFontSize": 18,
+    "noteFontFamily": "Segoe UI, Arial, sans-serif"
+  },
+  "er": {
+    "fontSize": 20,
+    "fontFamily": "Segoe UI, Arial, sans-serif"
+  },
+  "themeCSS": ".node text, .node .label { font-size: 20px !important; font-family: 'Segoe UI', Arial, sans-serif !important; } .cluster text { font-size: 20px !important; font-family: 'Segoe UI', Arial, sans-serif !important; font-weight: bold !important; } .edgeLabel, .edgeLabel span, .edgeLabel text { font-size: 18px !important; font-family: 'Segoe UI', Arial, sans-serif !important; } .actor, .actor text { font-size: 20px !important; font-family: 'Segoe UI', Arial, sans-serif !important; } .messageText { font-size: 20px !important; font-family: 'Segoe UI', Arial, sans-serif !important; } .noteText { font-size: 18px !important; font-family: 'Segoe UI', Arial, sans-serif !important; } .er.entityLabel { font-size: 20px !important; font-family: 'Segoe UI', Arial, sans-serif !important; font-weight: bold !important; } .er.attributeBoxOdd, .er.attributeBoxEven { font-size: 18px !important; font-family: 'Segoe UI', Arial, sans-serif !important; } .er.relationshipLabel { font-size: 18px !important; font-family: 'Segoe UI', Arial, sans-serif !important; }"
+}

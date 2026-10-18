@@ -1,0 +1,68 @@
+flowchart LR
+    %% Định nghĩa các tác nhân
+    User["👤 Người dùng"]
+    SensorSystem["⚙️ Cảm biến nền Android\n(StepCounterService / BootReceiver)"]
+    GeminiAI["🤖 Trợ lý Gemini AI\n(Google Generative AI)"]
+    FirestoreCloud["☁️ Dịch vụ đám mây\n(Cloud Firestore & Firebase Auth)"]
+
+    %% Phân hệ Theo dõi vận động
+    subgraph UC_Movement["Phân hệ Theo dõi vận động"]
+        UC_StepCount(["Theo dõi và đếm bước chân nền"])
+        UC_ViewStats(["Xem thống kê vận động ngày và tuần"])
+        UC_WidgetSync(["Cập nhật widget màn hình chính"])
+    end
+
+    %% Phân hệ Quản lý tập luyện
+    subgraph UC_Workout["Phân hệ Quản lý tập luyện"]
+        UC_SelectExercise(["Tra cứu và lọc danh mục bài tập"])
+        UC_PoseGuide(["Xem mô phỏng động học giải phẫu"])
+        UC_ActiveWorkout(["Thực hiện phiên tập và đếm giờ nghỉ"])
+        UC_LogWorkout(["Ghi nhận nhật ký bài tập"])
+    end
+
+    %% Phân hệ Dinh dưỡng & Trợ lý AI
+    subgraph UC_Nutrition["Phân hệ Dinh dưỡng & Trợ lý AI"]
+        UC_LogFood(["Ghi nhận khẩu phần dinh dưỡng"])
+        UC_BarcodeScan(["Quét mã vạch thực phẩm OpenFoodFacts"])
+        UC_WaterLog(["Theo dõi lượng nước uống"])
+        UC_AIChat(["Tư vấn dinh dưỡng với Gemini AI"])
+    end
+
+    %% Phân hệ Hồ sơ & Hệ thống
+    subgraph UC_Profile["Phân hệ Hồ sơ & Bảo mật"]
+        UC_ProfileUpdate(["Cập nhật chỉ số nhân trắc học"])
+        UC_BiometricLock(["Bật/tắt khóa bảo mật vân tay"])
+        UC_LanguageSwitch(["Chuyển đổi ngôn ngữ hiển thị"])
+        UC_AuthGoogle(["Đăng nhập tài khoản Google / Chế độ khách"])
+        UC_CloudSync(["Đồng bộ dữ liệu hai chiều"])
+    end
+
+    %% Liên kết Người dùng
+    User --> UC_ViewStats
+    User --> UC_SelectExercise
+    User --> UC_PoseGuide
+    User --> UC_ActiveWorkout
+    User --> UC_LogWorkout
+    User --> UC_LogFood
+    User --> UC_BarcodeScan
+    User --> UC_WaterLog
+    User --> UC_AIChat
+    User --> UC_ProfileUpdate
+    User --> UC_BiometricLock
+    User --> UC_LanguageSwitch
+    User --> UC_AuthGoogle
+
+    %% Liên kết Cảm biến nền
+    SensorSystem --> UC_StepCount
+    UC_StepCount --> UC_WidgetSync
+
+    %% Liên kết Gemini AI
+    UC_AIChat -.-> GeminiAI
+
+    %% Liên kết Cloud Firestore
+    UC_AuthGoogle --> FirestoreCloud
+    UC_CloudSync <.-> FirestoreCloud
+    UC_LogWorkout -.-> UC_CloudSync
+    UC_LogFood -.-> UC_CloudSync
+    UC_WaterLog -.-> UC_CloudSync
+    UC_ProfileUpdate -.-> UC_CloudSync

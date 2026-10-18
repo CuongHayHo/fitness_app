@@ -1,0 +1,79 @@
+### ps -A | grep
+u0_a341      16956  2569   25867252 754484 0                   0 S com.nhh031.fitness_tracker
+### dumpsys deviceidle whitelist
+0
+### cmd appops get
+Uid mode: COARSE_LOCATION: ignore
+FINE_LOCATION: ignore
+READ_CONTACTS: ignore
+WRITE_CONTACTS: ignore
+READ_CALL_LOG: ignore
+WRITE_CALL_LOG: ignore
+READ_CALENDAR: ignore
+WRITE_CALENDAR: ignore
+CALL_PHONE: ignore
+READ_SMS: ignore
+RECEIVE_SMS: ignore
+RECEIVE_MMS: ignore
+RECEIVE_WAP_PUSH: ignore
+SEND_SMS: ignore
+CAMERA: foreground
+RECORD_AUDIO: foreground
+READ_CLIPBOARD: foreground
+WRITE_CLIPBOARD: foreground
+AUDIO_MEDIA_VOLUME: foreground
+READ_PHONE_STATE: ignore
+ADD_VOICEMAIL: ignore
+USE_SIP: ignore
+PROCESS_OUTGOING_CALLS: ignore
+BODY_SENSORS: ignore
+READ_CELL_BROADCASTS: ignore
+READ_EXTERNAL_STORAGE: ignore
+WRITE_EXTERNAL_STORAGE: ignore
+GET_ACCOUNTS: ignore
+READ_PHONE_NUMBERS: ignore
+ANSWER_PHONE_CALLS: ignore
+ACCEPT_HANDOVER: ignore
+BLUETOOTH_SCAN: ignore
+READ_MEDIA_AUDIO: ignore
+READ_MEDIA_VIDEO: ignore
+READ_MEDIA_IMAGES: ignore
+ACCESS_MEDIA_LOCATION: ignore
+BLUETOOTH_CONNECT: ignore
+UWB_RANGING: ignore
+BLUETOOTH_ADVERTISE: ignore
+NEARBY_WIFI_DEVICES: ignore
+READ_MEDIA_VISUAL_USER_SELECTED: ignore
+READ_WRITE_HEALTH_DATA: ignore
+READ_HEART_RATE: ignore
+READ_SKIN_TEMPERATURE: ignore
+RANGING: ignore
+READ_OXYGEN_SATURATION: ignore
+VIBRATE: allow; time=+2m15s482ms ago; duration=+50ms
+POST_NOTIFICATION: allow
+CAMERA: allow; time=+14s776ms ago; duration=+14s696ms
+START_FOREGROUND: allow; time=+1m26s412ms ago (running)
+ACCESS_RESTRICTED_SETTINGS: default; rejectTime=+32s298ms ago
+USE_FULL_SCREEN_INTENT: default
+MIUIOP(10004): ignore
+MIUIOP(10008): ignore
+MIUIOP(10017): ignore
+MIUIOP(10020): ignore
+MIUIOP(10021): ignore
+MIUIOP(10022): ignore
+MIUIOP(10033): allow; time=+1m26s363ms ago
+MIUIOP(10045): ignore
+MIUIOP(10053): ignore
+### dumpsys appwidget
+  [215] provider ProviderId{user:0, app:10341, cmp:ComponentInfo{com.nhh031.fitness_tracker/com.example.fitness_tracker.FitnessAppWidgetProvider}}
+    min=(46081x23041)   minResize=(46081x23041) updatePeriodMillis=1800000 resizeMode=3 widgetCategory=1 autoAdvanceViewId=-1 initialLayout=#7f0c0021 initialKeyguardLayout=#0   zombie=false
+ 
+Widgets:
+### run-as prefs
+    <long name="flutter.water_cups_today" value="0" />
+    <long name="flutter.step_baseline_hardware" value="22048" />
+    <long name="flutter.today_steps" value="0" />
+    <string name="flutter.step_baseline_date">2026-10-18</string>
+    <long name="flutter.step_reboot_offset" value="0" />
+### logcat FATAL
+0

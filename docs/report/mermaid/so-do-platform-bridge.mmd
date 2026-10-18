@@ -1,0 +1,53 @@
+flowchart LR
+    subgraph FlutterLayer ["1. Tầng Flutter (Dart Application)"]
+        UI["Flutter UI Components<br/>(StepCounterWidget / Dashboard)"]
+        BS["BackgroundService<br/>(Điều khiển Service & Pin)"]
+        WS["WidgetSyncService<br/>(Yêu cầu refresh Widget)"]
+        Rep["StepRepository<br/>(Quản lý trạng thái bước chân)"]
+    end
+
+    subgraph ChannelLayer ["2. Tầng Cầu Nối Nền Tảng (Platform Channels)"]
+        MC["MethodChannel<br/>'com.example.fitness_tracker/service'<br/>- startService<br/>- isIgnoringBatteryOptimizations<br/>- requestIgnoreBatteryOptimizations<br/>- updateWidget"]
+        EC["EventChannel<br/>'com.example.fitness_tracker/steps'<br/>- StreamHandler (onListen / onCancel)<br/>- eventSink.success(steps)"]
+    end
+
+    subgraph NativeLayer ["3. Tầng Native Android (Kotlin)"]
+        MA["MainActivity<br/>- Tiếp nhận lệnh MethodChannel<br/>- Đăng ký BroadcastReceiver động<br/>- Gửi dữ liệu qua EventSink"]
+        SCS["StepCounterService<br/>(Foreground Service, type=health)<br/>- Lắng nghe cảm biến SensorManager<br/>- Tính toán baseline & reboot offset"]
+        BR["BootReceiver<br/>(BroadcastReceiver tĩnh)<br/>- Bắt ACTION_BOOT_COMPLETED<br/>- Tự khởi động Service"]
+        FAW["FitnessAppWidgetProvider<br/>(AppWidgetProvider)<br/>- Xây dựng RemoteViews<br/>- Đăng ký PendingIntent mở app"]
+    end
+
+    subgraph SharedStorage ["4. Bộ Nhớ Dùng Chung Hai Chiều (SharedPreferences)"]
+        SP[("Tệp XML FlutterSharedPreferences<br/>- flutter.today_steps<br/>- flutter.step_baseline_hardware<br/>- flutter.step_reboot_offset<br/>- flutter.water_cups_today")]
+    end
+
+    subgraph OSComponents ["5. Hệ Điều Hành & Phần Cứng Android"]
+        SensorHW["Cảm biến phần cứng<br/>TYPE_STEP_COUNTER"]
+        NotiSys["Notification System<br/>(Ongoing Notification)"]
+        HomeScreen["Màn hình chính Android<br/>(Home Screen App Widget)"]
+    end
+
+    %% Tương tác gọi hàm (MethodChannel)
+    BS -->|invokeMethod| MC
+    WS -->|invokeMethod| MC
+    MC -->|onMethodCall| MA
+    MA -->|startForegroundService| SCS
+    MA -->|updateAllWidgets| FAW
+
+    %% Tương tác luồng sự kiện (EventChannel)
+    SensorHW -->|onSensorChanged| SCS
+    SCS -->|sendBroadcast| MA
+    MA -->|eventSink.success| EC
+    EC -->|StreamSubscription| UI
+
+    %% Tương tác dữ liệu dùng chung
+    SCS -->|Ghi bước chân & offset| SP
+    Rep <-->|Đọc / Ghi bước chân & nước| SP
+    FAW -->|Đọc bước chân & nước| SP
+
+    %% Tương tác hiển thị hệ thống
+    SCS -->|updateNotification| NotiSys
+    FAW -->|updateAppWidget RemoteViews| HomeScreen
+    HomeScreen -.->|PendingIntent kích hoạt| MA
+    BR -->|startForegroundService khi reboot| SCS

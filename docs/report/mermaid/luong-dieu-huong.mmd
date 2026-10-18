@@ -1,0 +1,43 @@
+flowchart LR
+    subgraph AuthSection ["1. KHỞI ĐỘNG & XÁC THỰC"]
+        direction TB
+        Start["<b>Khởi động ứng dụng</b><br/>• main(): Firebase, SQLite, Locale<br/>• FitnessTrackerApp lắng nghe LocaleService"]
+        AuthGate{"<b>AuthGate</b><br/>Kiểm tra phiên đăng nhập?"}
+        Login["<b>LoginScreen</b><br/>• Đăng nhập Google (Firebase Auth)<br/>• Tiếp tục chế độ Khách (Guest Mode)"]
+        Start --> AuthGate
+        AuthGate -->|Chưa đăng nhập| Login
+    end
+
+    subgraph SecuritySection ["2. ONBOARDING & SINH TRẮC HỌC"]
+        direction TB
+        CheckOnboard{"<b>Onboarding?</b><br/>Đã lập hồ sơ thể trạng?"}
+        OnboardScreen["<b>OnboardingProfileScreen</b><br/>Khởi tạo chiều cao, cân nặng, mục tiêu calo"]
+        BioGate["<b>BiometricGate (Khóa vân tay)</b><br/>• Lắng nghe WidgetsBindingObserver (resumed)<br/>• Kích hoạt BiometricPrompt (local_auth)"]
+        CheckOnboard -->|Chưa có| OnboardScreen
+        OnboardScreen --> BioGate
+        CheckOnboard -->|Đã có hồ sơ| BioGate
+    end
+
+    subgraph MainSection ["3. ĐIỀU HƯỚNG MAINSCREEN (BẢO TOÀN STATE 4 TAB)"]
+        direction TB
+        MainCoordinator["<b>MainScreen (Khung điều phối)</b><br/>Scaffold (extendBody) & Dock kính mờ nổi (blur 24px)<br/>Tương tác switchTab(index) cập nhật tabNotifier"]
+        
+        subgraph TabsGrid ["IndexedStack (Bảo toàn State)"]
+            Tab0["<b>Tab 0: DashboardScreen</b><br/>Calo Hero, Bước chân, Điểm sức khỏe"]
+            Tab1["<b>Tab 1: WorkoutScreen</b><br/>Danh mục bài tập, Mô phỏng giải phẫu"]
+            Tab2["<b>Tab 2: FoodScreen</b><br/>Biểu đồ Macro Donut, Bữa ăn, Nước uống"]
+            Tab3["<b>Tab 3: ProfileScreen</b><br/>Hồ sơ cá nhân, Sinh trắc học, Cài đặt"]
+        end
+
+        Logout["<b>Đăng xuất tài khoản</b><br/>Xóa SQLite & Reset sessionKey<br/>➔ Điều hướng quay về AuthGate"]
+
+        MainCoordinator --> Tab0
+        MainCoordinator --> Tab1
+        MainCoordinator --> Tab2
+        MainCoordinator --> Tab3
+        Tab3 --> Logout
+    end
+
+    AuthGate -->|Đã có phiên / Khách| CheckOnboard
+    Login -->|Xác thực xong| CheckOnboard
+    BioGate -->|Xác thực sinh trắc thành công| MainCoordinator
