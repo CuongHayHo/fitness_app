@@ -147,3 +147,37 @@ Chọn tài khoản xong app vẫn ở chế độ Khách, log `Google Sign-In c
 Kiểm lại trên Xiaomi (analyze sạch, 123/123 test pass): chọn ảnh phở → log `gemini-3.8-flash lỗi: Server Error [503]` → `gemini-3.7-flash lỗi: Server Error [503]` → `gemini-2.5-flash` trả kết quả **"Phở Bò Tái Nạm" — 570 kcal, đạm 36 g, tinh bột 48 g, béo 23 g** sau ~17 s — `chup-ai-food-scanner.png`.
 
 **Báo cáo cần sửa theo**: Mở đầu (mục 1, 2), Bảng 1.1, 2.1.1, 2.3 (lớp 6), 4.3.2 (đoạn "Model Fallback" và code `_generateWithFallback`), Bảng 4.3 — đổi "dự phòng hai tầng 3.8 → 3.7" thành chuỗi ba tầng 3.8 → 3.7 → 2.5-flash có timeout từng tầng.
+
+## 7. Test thêm các chức năng còn lại (2026-10-18, chiều)
+
+| Chức năng | Kết quả | Bằng chứng |
+|---|---|---|
+| Nhập món bằng bàn phím | Chạy. "2 qua trung op la va 1 banh mi" → Gemini trả "Two fried eggs and a baguette" 410 kcal, P19/C45/F17 | `chup-nutrition-meal-logged.png` |
+| Lưu món vào SQLite | Chạy. `food_entries`: `('Two fried eggs and a baguette', 410, 19, 45, 17, 'Breakfast', '2026-10-18')` | truy vấn DB kéo bằng `run-as` |
+| Nhập bằng giọng nói | Một phần. Nút micro chuyển trạng thái "đang nghe"; **chưa kiểm được nội dung nhận dạng** (cần người nói trực tiếp; thử phát TTS tiếng Anh từ loa máy tính không thu được) | — |
+| Lưu buổi tập vào SQLite | Chạy. `workout_logs`: `('Đẩy ngực tạ đơn', 1, 32, 1, 10, 10.0, 'dumbbell', ...)`; bản đồ nhiệt 7 ngày đánh dấu CN; tab Hoạt động hiện "1/150 phút" | — |
+| Progressive Overload | Chạy. Buổi sau hiện "Buổi trước: 10.0kg × 10 reps → Hôm nay: +1 rep hoặc +1–2.5kg" | `chup-progressive-overload.png` |
+| AI tạo bài tập | Chạy. Mục tiêu Core 15 phút → "Shred Circuit" 5 động tác kèm hiệp/thời gian | `chup-ai-workout-generator.png` |
+| Lịch sử chat AI | Chạy. 4 tin nhắn, có tìm kiếm và lọc Câu hỏi/Lời khuyên | `chup-ai-chat-history.png` |
+| Số đo cơ thể (US Navy) | Chạy. Eo 82, cổ 38, ngực 95, cao 175 → **14,5 %** (khớp tính tay), "Săn chắc thể hình"; `body_measurements` có bản ghi | `chup-body-measurements.png` |
+| Đổi ngôn ngữ EN ↔ VI | Chạy. Lưu `flutter.app_language`; hầu hết UI đã dịch | `chup-profile-english.png` |
+| Nhắc uống nước | Chạy. 7 lịch 08:00–20:00 (chu kỳ 2h; 1h → 14 lịch 08:00–21:00), `exactAllowWhileIdle`, `RTC_WAKEUP window=0`; "Gửi ngay" và "Thử hẹn giờ (5s)" đều hiện thông báo | `dumpsys alarm`, `scheduled_notifications.xml` |
+
+### 7.1. Lỗi tìm thấy và đã sửa trong đợt này
+
+| # | Lỗi | Sửa | Kiểm lại |
+|---|---|---|---|
+| D8 | Hộp thoại "Xuất sắc!" khi hoàn thành bài tập tràn 8,4 px, ô "Mức tạ" bị cắt | `active_workout_screen.dart`: mỗi ô thống kê bọc `Expanded` + `FittedBox(scaleDown)` | Hiện đủ 4 ô — `chup-workout-complete.png` |
+| D9 | Dòng món ăn trong thẻ "AI ghi nhận món ăn" tràn 9,8 px | `ai_food_logging_widget.dart`: dòng macro bọc `Expanded` + ellipsis | Hết tràn — `chup-water-card-2000ml.png` |
+| D10 | **Bấm "Thử hẹn giờ (5s)" xoá mất lịch nhắc 10:00 hằng ngày** (7 → 6 lịch): thông báo thử dùng id 1002 trùng dải id lịch định kỳ 1001..1020; "Gửi ngay" dùng 1001 | `notification_service.dart`: id riêng 901 (tức thì) và 902 (thử) | Sau khi thử vẫn đủ 7 lịch, thông báo thử có id 902 |
+
+### 7.2. Ghi nhận chưa sửa (cần quyết định / báo cáo cần sửa)
+
+- **Nước uống và chat AI không lưu vào SQLite**: luồng UI đi qua `StorageService` ghi vào SharedPreferences (`flutter.daily_water_history`, `flutter.ai_chat_history` dạng danh sách JSON). Hàm SQLite trong `WaterRepository`/`ChatRepository` có nhưng UI không gọi. Bảng `daily_water_history`, `chat_messages` trống sau khi dùng app → khẳng định "Local-First SQLite 7 bảng" (mục 2.3, 2.5.1, 4.1.3) chỉ đúng với món ăn, bài tập, số đo, món ưa thích, ảnh tiến trình.
+- **Quyền micro xin ngay khi mở app** (`_initSpeech()` trong `initState` của thẻ AI ở Dashboard), không phải "khi người dùng mở chức năng thu âm" như 3.10.2.
+- `workout_logs.duration` lưu **phút** (báo cáo 2.5.1 ghi "giây"). Log lưu số rep **mục tiêu** (12) chứ không phải số rep đã đếm (3).
+- Nội dung AI (tên món, bài tập) trả về **tiếng Anh** dù app đang tiếng Việt.
+- Chat AI hiển thị **Markdown thô** (`**`, `*`).
+- Màn hình lịch sử chat ghi "Lưu trữ Cloud • Cloud Firestore Sync" dù đang ở chế độ Khách.
+- Chế độ EN còn chuỗi hard-code tiếng Việt: "Món Ăn Quen Thuộc", "+ Thêm món", gợi ý món yêu thích trống, nút "KẾT NỐI HEALTH CONNECT / WATCH"; "1 Days".
+- Báo cáo 3.4.2 ghi nhắc "08:00 đến 21:00" — với chu kỳ mặc định 2h, mốc cuối là 20:00.
