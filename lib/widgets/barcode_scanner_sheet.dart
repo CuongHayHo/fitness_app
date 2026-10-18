@@ -502,8 +502,9 @@ class _BarcodeScannerSheetState extends State<BarcodeScannerSheet>
           const SizedBox(height: 20),
 
           // Portion / Serving Multiplier Selector
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // Nhãn ở trên, chip trong Wrap ở dưới: 4 chip + nhãn trên cùng một Row tràn ~63 px
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
                 'Khẩu phần tiêu thụ:',
@@ -513,25 +514,25 @@ class _BarcodeScannerSheetState extends State<BarcodeScannerSheet>
                   color: Colors.white70,
                 ),
               ),
-              Row(
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
                 children: [0.5, 1.0, 1.5, 2.0].map((val) {
                   final selected = _portionMultiplier == val;
-                  return Padding(
-                    padding: const EdgeInsets.only(left: 6),
-                    child: ChoiceChip(
-                      label: Text('${val}x'),
-                      selected: selected,
-                      selectedColor: AppColors.info,
-                      backgroundColor: const Color(0xFF1E1E28),
-                      labelStyle: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: selected ? Colors.black : Colors.white70,
-                      ),
-                      onSelected: (_) {
-                        setState(() => _portionMultiplier = val);
-                      },
+                  return ChoiceChip(
+                    label: Text('${val}x'),
+                    selected: selected,
+                    selectedColor: AppColors.info,
+                    backgroundColor: const Color(0xFF1E1E28),
+                    labelStyle: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: selected ? Colors.black : Colors.white70,
                     ),
+                    onSelected: (_) {
+                      setState(() => _portionMultiplier = val);
+                    },
                   );
                 }).toList(),
               ),

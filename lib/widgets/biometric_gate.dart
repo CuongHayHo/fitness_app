@@ -16,6 +16,9 @@ class BiometricGate extends StatefulWidget {
 class _BiometricGateState extends State<BiometricGate> with WidgetsBindingObserver {
   bool _isChecking = true;
   bool _isLocked = false;
+  // Hộp thoại vân tay là cửa sổ hệ thống: khi nó đóng, app nhận `resumed` trước khi
+  // authenticate() trả kết quả. Cờ này chặn việc mở thêm hộp thoại lần hai trong lúc đó.
+  bool _isAuthenticating = false;
 
   @override
   void initState() {
@@ -59,11 +62,18 @@ class _BiometricGateState extends State<BiometricGate> with WidgetsBindingObserv
   }
 
   Future<void> _promptAuth() async {
-    final success = await BiometricService.instance.authenticate(
-      reason: LocaleService.isVietnamese
-          ? 'Xác thực sinh trắc học để mở khóa Fitness Tracker'
-          : 'Biometric authentication to unlock Fitness Tracker',
-    );
+    if (_isAuthenticating) return;
+    _isAuthenticating = true;
+    final bool success;
+    try {
+      success = await BiometricService.instance.authenticate(
+        reason: LocaleService.isVietnamese
+            ? 'Xác thực sinh trắc học để mở khóa Fitness Tracker'
+            : 'Biometric authentication to unlock Fitness Tracker',
+      );
+    } finally {
+      _isAuthenticating = false;
+    }
     if (success && mounted) {
       AppHaptics.success();
       setState(() {
