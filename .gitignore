@@ -53,3 +53,10 @@ Desktop.ini
 # Symbolication & Obfuscation
 app.*.symbols
 app.*.map.json
+
+# Prompt cho AI, nhật ký rà soát và file Word báo cáo: chỉ giữ trên máy
+docs/antigravity-report-plan.md
+docs/antigravity-teamwork-plan.md
+docs/report/prompt-*.txt
+docs/report/review.md
+docs/**/*.docx
