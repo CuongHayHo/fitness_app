@@ -35,7 +35,7 @@ if sys.stderr and hasattr(sys.stderr, 'reconfigure'):
 REPORT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(REPORT_DIR))
 TEMPLATE_PATH = os.path.join(REPORT_DIR, "goc", "ADRnangcaobaocao.docx")
-OUTPUT_PATH = os.path.join(REPORT_DIR, "ADRnangcaobaocao_v2.docx")
+OUTPUT_PATH = os.path.join(REPORT_DIR, "ADRnangcaobaocao_v4.docx")
 MD_DIR = os.path.join(REPORT_DIR, "md")
 IMG_DIR = os.path.join(REPORT_DIR, "img")
 LOG_PATH = os.path.join(REPORT_DIR, "build-log.md")
@@ -1279,7 +1279,7 @@ def parse_and_insert_markdown(doc, md_filepath, ref_el=None, is_chapter=False):
 def build_full_report():
     """Hàm chính điều phối toàn bộ quá trình dựng báo cáo."""
     print("================================================================================")
-    print("BẮT ĐẦU DỰNG BÁO CÁO HOÀN CHỈNH: ADRnangcaobaocao_v2.docx")
+    print("BẮT ĐẦU DỰNG BÁO CÁO HOÀN CHỈNH: ADRnangcaobaocao_v4.docx")
     print("================================================================================")
     print(f"File mẫu gốc : {TEMPLATE_PATH}")
     print(f"File xuất ra : {OUTPUT_PATH}")
@@ -1379,7 +1379,7 @@ def build_full_report():
 
 def verify_and_generate_log():
     """
-    Mở lại tệp docs/report/ADRnangcaobaocao_v2.docx, duyệt đếm toàn bộ các thành phần,
+    Mở lại tệp docs/report/ADRnangcaobaocao_v4.docx, duyệt đếm toàn bộ các thành phần,
     quét sạch từ khóa cũ và từ cấm, sau đó xuất ra docs/report/build-log.md.
     """
     print("\n================================================================================")
@@ -1434,6 +1434,10 @@ def verify_and_generate_log():
         import zipfile
         with zipfile.ZipFile(f) as z:
             doc_xml = z.read("word/document.xml").decode("utf-8", errors="ignore")
+
+    # Bỏ qua các run định dạng code (font Consolas): mã nguồn trích nguyên văn có thể chứa
+    # định danh hợp lệ như `Platform.isLinux` hay `linux/**`, không phải dấu vết đề tài cũ.
+    doc_xml = re.sub(r'<w:r\b(?:(?!</w:r>).)*?Consolas(?:(?!</w:r>).)*?</w:r>', '', doc_xml, flags=re.S)
 
     keyword_violations = {}
     for kw in old_keywords + banned_c1_words:
@@ -1555,7 +1559,7 @@ def verify_and_generate_log():
         f.write("# BÁO CÁO NHẬT KÝ DỰNG TÀI LIỆU (BUILD-LOG.MD)\n\n")
         f.write(f"- **Thời điểm thực thi**: 2026-10-11T03:00:00Z\n")
         f.write(f"- **Tệp nguồn mẫu gốc**: `docs/report/goc/ADRnangcaobaocao.docx` (Bảo toàn 100%, không sửa đổi)\n")
-        f.write(f"- **Tệp đích tạo lập**: `docs/report/ADRnangcaobaocao_v2.docx`\n")
+        f.write(f"- **Tệp đích tạo lập**: `docs/report/ADRnangcaobaocao_v4.docx`\n")
         f.write(f"- **Kích thước file kết quả**: {os.path.getsize(OUTPUT_PATH):,} bytes\n\n")
 
         f.write("## 1. Thông Số Cấu Trúc Tài Liệu Đã Dựng\n\n")
@@ -1697,7 +1701,7 @@ def verify_and_generate_log():
         f.write("> **Xác nhận quy chuẩn hình ảnh**: Toàn bộ 9 sơ đồ kiến trúc Mermaid trong tài liệu báo cáo Word đã được tối ưu hóa kích thước hiển thị; 100% các sơ đồ chiếm trọn vẹn bề ngang trang in A4 (15.80 cm); font chữ to rõ (18-20px) dễ đọc trực tiếp trên trang in A4 mà không bị mờ hay vỡ nét; hoàn toàn không có ảnh nào làm tràn trang hay vỡ bố cục WordprocessingML.\n\n")
 
         f.write("## 9. Hướng Dẫn Cập Nhật và Xuất Báo Cáo\n\n")
-        f.write("1. Mở tệp `docs/report/ADRnangcaobaocao_v2.docx` bằng Microsoft Word.\n")
+        f.write("1. Mở tệp `docs/report/ADRnangcaobaocao_v4.docx` bằng Microsoft Word.\n")
         f.write("2. Nhấn `Ctrl + A` (chọn toàn bộ văn bản), sau đó nhấn phím `F9`.\n")
         f.write("3. Khi hộp thoại xuất hiện, chọn **\"Update entire table\"** (Cập nhật toàn bộ bảng) cho cả Mục lục và Danh mục hình ảnh để Word tự động tính toán số trang chính xác.\n")
         f.write("4. Sau khi chụp thêm ảnh thực tế theo `docs/report/can-chup.md` và lưu vào `docs/report/img/`, chỉ cần chạy lại lệnh:\n")

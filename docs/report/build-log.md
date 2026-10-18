@@ -2,20 +2,20 @@
 
 - **Thời điểm thực thi**: 2026-10-11T03:00:00Z
 - **Tệp nguồn mẫu gốc**: `docs/report/goc/ADRnangcaobaocao.docx` (Bảo toàn 100%, không sửa đổi)
-- **Tệp đích tạo lập**: `docs/report/ADRnangcaobaocao_v2.docx`
-- **Kích thước file kết quả**: 3,679,278 bytes
+- **Tệp đích tạo lập**: `docs/report/ADRnangcaobaocao_v4.docx`
+- **Kích thước file kết quả**: 12,788,384 bytes
 
 ## 1. Thông Số Cấu Trúc Tài Liệu Đã Dựng
 
 | Hạng mục thành phần | Số lượng ghi nhận | Ghi chú kỹ thuật |
 |---|:---:|---|
-| **Tổng số đoạn văn (Paragraphs)** | 651 | Bao gồm tiêu đề, văn bản thường và chú thích |
-| **Tổng số bảng biểu (Tables)** | 67 | Bảng trang bìa, 18 bảng số liệu và khung code block / placeholder |
+| **Tổng số đoạn văn (Paragraphs)** | 714 | Bao gồm tiêu đề, văn bản thường và chú thích |
+| **Tổng số bảng biểu (Tables)** | 56 | Bảng trang bìa, 18 bảng số liệu và khung code block / placeholder |
 | **Tiêu đề cấp 1 (Heading 1)** | 10 | Mở đầu, Cảm ơn, 5 Chương, Tài liệu tham khảo, Phụ lục |
 | **Tiêu đề cấp 2 (Heading 2)** | 38 | Các mục chính 1.1 -> 5.5, Phụ lục A, B, C |
 | **Tiêu đề cấp 3 (Heading 3)** | 53 | Các tiểu mục chuyên sâu |
 | **Tiêu đề cấp 4 (Heading 4)** | 1 | Tiểu mục phân tích race condition |
-| **Hình minh họa (Figures)** | 23 | 9 sơ đồ PNG thực tế + 14 khung giữ chỗ ảnh chụp |
+| **Hình minh họa (Figures)** | 33 | 9 sơ đồ PNG thực tế + 14 khung giữ chỗ ảnh chụp |
 | **Bảng số liệu (Tables in text)** | 18 | 18 bảng kỹ thuật, phân quyền, thống kê, phụ lục |
 
 ## 2. Danh Sách Các Tiêu Đề Cấp 1 (Heading 1)
@@ -42,20 +42,30 @@
 - Hình 3.1: Quy trình thu thập và tính toán bước chân trong StepCounterService
 - Hình 3.2: Thông báo liên tục của dịch vụ chạy nền StepCounterService
 - Hình 3.3: Widget tiện ích của ứng dụng trên màn hình chính Android
-- Hình 3.4: Kiến trúc cầu nối Platform Channel và dữ liệu dùng chung
-- Hình 3.5: Kiểm tra trạng thái Foreground Service bằng lệnh adb dumpsys
-- Hình 4.1: Giao diện màn hình Dashboard tổng quan
-- Hình 4.2: Giao diện danh mục bài tập và mô hình cơ bắp giải phẫu
-- Hình 4.3: Giao diện chi tiết bài tập và ghi nhận hiệp tập
-- Hình 4.4: Giao diện theo dõi dinh dưỡng và các bữa ăn trong ngày
-- Hình 4.5: Chức năng nhận diện món ăn bằng AI Gemini qua Camera
-- Hình 4.6: Quét mã vạch thực phẩm qua Open Food Facts
-- Hình 4.7: Giao diện hồ sơ cá nhân và cài đặt ứng dụng
-- Hình 4.8: Hộp thoại xác thực sinh trắc học Android BiometricPrompt
+- Hình 3.4: Thông báo đếm ngược nghỉ hiệp với thanh tiến trình trên khay hệ thống
+- Hình 3.5: Trang thiết lập pin của HyperOS mở từ yêu cầu miễn trừ tối ưu hóa pin
+- Hình 3.6: Kiến trúc cầu nối Platform Channel và dữ liệu dùng chung
+- Hình 3.7: Giao diện cấp quyền Health Connect cho ứng dụng
+- Hình 3.8: Kiểm tra trạng thái Foreground Service bằng lệnh adb dumpsys
+- Hình 4.1: Biểu đồ năng lượng 24 giờ trên Dashboard
+- Hình 4.2: Giao diện màn hình Dashboard tổng quan
+- Hình 4.3: Giao diện danh mục bài tập và mô hình cơ bắp giải phẫu
+- Hình 4.4: Giao diện chi tiết bài tập và ghi nhận hiệp tập
+- Hình 4.5: Gợi ý tăng tiến tải trọng dựa trên buổi tập trước
+- Hình 4.6: Hộp thoại tổng kết khi hoàn thành bài tập
+- Hình 4.7: Giáo án do AI Huấn luyện viên tạo theo mục tiêu Bụng & Core
+- Hình 4.8: Giao diện theo dõi dinh dưỡng và các bữa ăn trong ngày
+- Hình 4.9: Chức năng nhận diện món ăn bằng AI Gemini qua ảnh
+- Hình 4.10: Quét mã vạch thực phẩm qua Open Food Facts
+- Hình 4.11: Hội thoại với Chuyên gia dinh dưỡng AI
+- Hình 4.12: Lịch sử tư vấn AI
+- Hình 4.13: Màn hình số đo cơ thể và tỷ lệ mỡ theo phương pháp US Navy
+- Hình 4.14: Giao diện hồ sơ cá nhân và cài đặt ứng dụng
+- Hình 4.15: Chỉ số trao đổi chất và khóa bảo mật sinh trắc học trong tab Hồ sơ
+- Hình 4.16: Tab Hồ sơ ở chế độ tiếng Anh
 - Hình 5.1: Minh chứng kết quả phân tích tĩnh và kiểm thử tự động
 - Hình 5.2: Quy trình kiểm thử và CI/CD tự động trên GitHub Actions
-- Hình 5.3: Quy trình tích hợp liên tục trên giao diện GitHub Actions
-- Hình 5.4: Trạng thái Foreground Service của ứng dụng qua công cụ adb dumpsys
+- Hình 5.3: Trạng thái Foreground Service của ứng dụng qua công cụ adb dumpsys
 
 ## 4. Kiểm Tra Liêm Chính Kỹ Thuật & Quét Từ Cấm
 
@@ -78,11 +88,11 @@
 
 | Tiêu chuẩn định dạng | Quy chuẩn kỹ thuật | Kết quả ghi nhận | Trạng thái |
 |---|---|:---:|:---:|
-| **Nội dung văn bản (Normal & List)** | Cỡ chữ 14pt (`Pt(14)`) | **1796 runs** | ✅ ĐẠT |
-| **Từ khóa & Code (Consolas)** | Tối thiểu 11pt, inline 12pt (`Pt(11)`/`Pt(12)`) | **943 runs** (tất cả ≥ 11pt) | ✅ ĐẠT |
+| **Nội dung văn bản (Normal & List)** | Cỡ chữ 14pt (`Pt(14)`) | **1986 runs** | ✅ ĐẠT |
+| **Từ khóa & Code (Consolas)** | Tối thiểu 11pt, inline 12pt (`Pt(11)`/`Pt(12)`) | **1128 runs** (tất cả ≥ 11pt) | ✅ ĐẠT |
 | **Từ khóa sót backtick chưa parse** | Tuyệt đối 0 ký tự backtick sót ngoài code | **0 vi phạm** | ✅ ĐẠT |
-| **Bảng biểu dữ liệu** | Tối thiểu 11pt (`Pt(11)`) | **1111 runs** (tất cả ≥ 11pt) | ✅ ĐẠT |
-| **Chú thích hình/bảng (Caption)** | Cỡ chữ 11pt (`Pt(11)`) | **41 runs** (tất cả ≥ 11pt) | ✅ ĐẠT |
+| **Bảng biểu dữ liệu** | Tối thiểu 11pt (`Pt(11)`) | **1196 runs** (tất cả ≥ 11pt) | ✅ ĐẠT |
+| **Chú thích hình/bảng (Caption)** | Cỡ chữ 11pt (`Pt(11)`) | **51 runs** (tất cả ≥ 11pt) | ✅ ĐẠT |
 | **Thành phần dưới 11pt (< 11pt)** | Tuyệt đối loại bỏ cỡ 9.5pt, 10pt cũ | **0 vi phạm** | ✅ ĐẠT |
 | **Cấp tiêu đề (Headings 1-4)** | Bảo toàn nguyên vẹn kiểu dáng & cỡ chữ | **10 H1, 38 H2, 53 H3, 1 H4** | ✅ ĐẠT |
 
@@ -132,13 +142,37 @@
 | 5 | Hình 2.3: Sơ đồ quan hệ thực thể ERD SQLite (erd-sqlite.png) | Ngang / Vuông | **15.80 cm** | **10.62 cm** | 1.49 | Giữa trang | ✅ ĐẠT |
 | 6 | Hình 2.4: Sơ đồ luồng điều hướng & xác thực (luong-dieu-huong.png) | Ngang / Vuông | **15.80 cm** | **5.42 cm** | 2.92 | Giữa trang | ✅ ĐẠT |
 | 7 | Hình 3.1: Quy trình tính toán bước chân StepCounterService (so-do-step-counter.png) | Ngang / Vuông | **15.80 cm** | **3.83 cm** | 4.13 | Giữa trang | ✅ ĐẠT |
-| 8 | Hình 3.4: Kiến trúc cầu nối Platform Channel & Storage (so-do-platform-bridge.png) | Ngang / Vuông | **15.80 cm** | **4.07 cm** | 3.88 | Giữa trang | ✅ ĐẠT |
-| 9 | Hình 5.2: Quy trình kiểm thử & CI/CD GitHub Actions (ci-cd-pipeline.png) | Ngang / Vuông | **15.80 cm** | **3.14 cm** | 5.03 | Giữa trang | ✅ ĐẠT |
+| 8 | Hình 3.4: Kiến trúc cầu nối Platform Channel & Storage (so-do-platform-bridge.png) | Ngang / Vuông | **15.80 cm** | **2.78 cm** | 5.68 | Giữa trang | ✅ ĐẠT |
+| 9 | Hình 5.2: Quy trình kiểm thử & CI/CD GitHub Actions (ci-cd-pipeline.png) | Ngang / Vuông | **15.80 cm** | **8.24 cm** | 1.92 | Giữa trang | ✅ ĐẠT |
+| 10 | Sơ đồ 10 | Ngang / Vuông | **15.80 cm** | **3.21 cm** | 4.92 | Giữa trang | ✅ ĐẠT |
+| 11 | Sơ đồ 11 | Dọc | **8.77 cm** | **19.00 cm** | 0.46 | Giữa trang | ✅ ĐẠT |
+| 12 | Sơ đồ 12 | Ngang / Vuông | **15.80 cm** | **4.07 cm** | 3.88 | Giữa trang | ✅ ĐẠT |
+| 13 | Sơ đồ 13 | Dọc | **8.77 cm** | **19.00 cm** | 0.46 | Giữa trang | ✅ ĐẠT |
+| 14 | Sơ đồ 14 | Ngang / Vuông | **15.80 cm** | **4.21 cm** | 3.75 | Giữa trang | ✅ ĐẠT |
+| 15 | Sơ đồ 15 | Dọc | **8.77 cm** | **19.00 cm** | 0.46 | Giữa trang | ✅ ĐẠT |
+| 16 | Sơ đồ 16 | Dọc | **8.77 cm** | **19.00 cm** | 0.46 | Giữa trang | ✅ ĐẠT |
+| 17 | Sơ đồ 17 | Dọc | **8.77 cm** | **19.00 cm** | 0.46 | Giữa trang | ✅ ĐẠT |
+| 18 | Sơ đồ 18 | Dọc | **8.77 cm** | **19.00 cm** | 0.46 | Giữa trang | ✅ ĐẠT |
+| 19 | Sơ đồ 19 | Dọc | **8.77 cm** | **19.00 cm** | 0.46 | Giữa trang | ✅ ĐẠT |
+| 20 | Sơ đồ 20 | Dọc | **8.77 cm** | **19.00 cm** | 0.46 | Giữa trang | ✅ ĐẠT |
+| 21 | Sơ đồ 21 | Dọc | **8.77 cm** | **19.00 cm** | 0.46 | Giữa trang | ✅ ĐẠT |
+| 22 | Sơ đồ 22 | Dọc | **8.77 cm** | **19.00 cm** | 0.46 | Giữa trang | ✅ ĐẠT |
+| 23 | Sơ đồ 23 | Dọc | **8.77 cm** | **19.00 cm** | 0.46 | Giữa trang | ✅ ĐẠT |
+| 24 | Sơ đồ 24 | Dọc | **8.77 cm** | **19.00 cm** | 0.46 | Giữa trang | ✅ ĐẠT |
+| 25 | Sơ đồ 25 | Dọc | **8.77 cm** | **19.00 cm** | 0.46 | Giữa trang | ✅ ĐẠT |
+| 26 | Sơ đồ 26 | Dọc | **8.77 cm** | **19.00 cm** | 0.46 | Giữa trang | ✅ ĐẠT |
+| 27 | Sơ đồ 27 | Dọc | **8.77 cm** | **19.00 cm** | 0.46 | Giữa trang | ✅ ĐẠT |
+| 28 | Sơ đồ 28 | Dọc | **8.77 cm** | **19.00 cm** | 0.46 | Giữa trang | ✅ ĐẠT |
+| 29 | Sơ đồ 29 | Dọc | **8.77 cm** | **19.00 cm** | 0.46 | Giữa trang | ✅ ĐẠT |
+| 30 | Sơ đồ 30 | Dọc | **8.77 cm** | **19.00 cm** | 0.46 | Giữa trang | ✅ ĐẠT |
+| 31 | Sơ đồ 31 | Ngang / Vuông | **15.80 cm** | **6.76 cm** | 2.34 | Giữa trang | ✅ ĐẠT |
+| 32 | Sơ đồ 32 | Ngang / Vuông | **15.80 cm** | **3.14 cm** | 5.03 | Giữa trang | ✅ ĐẠT |
+| 33 | Sơ đồ 33 | Ngang / Vuông | **15.80 cm** | **7.08 cm** | 2.23 | Giữa trang | ✅ ĐẠT |
 
 ### Tổng kết kiểm toán sơ đồ Mermaid:
-- **Tổng số sơ đồ kiểm tra**: 9/9 sơ đồ
-- **Sơ đồ ngang (aspect >= 0.8)**: 9/9 sơ đồ đạt chiều rộng chuẩn **15.80 cm** (phủ trọn vẹn lề trang in A4, không có ảnh nào bị co bé < 10.0 cm)
-- **Sơ đồ dọc (aspect < 0.8)**: 0 sơ đồ (Toàn bộ 9/9 sơ đồ đã được tối ưu hóa sang hướng ngang / cân đối, phủ trọn vẹn 15.80 cm bề ngang lề trang in A4)
+- **Tổng số sơ đồ kiểm tra**: 33/9 sơ đồ
+- **Sơ đồ ngang (aspect >= 0.8)**: 15/33 sơ đồ đạt chiều rộng chuẩn **15.80 cm** (phủ trọn vẹn lề trang in A4, không có ảnh nào bị co bé < 10.0 cm)
+- **Sơ đồ dọc (aspect < 0.8)**: 18/33 sơ đồ đạt chiều cao chuẩn **19.00 cm** (trong giới hạn 18.0 - 20.0 cm, tự động co dãn không tràn trang)
 - **Giới hạn an toàn trang A4**: 100% sơ đồ có chiều rộng <= 16.0 cm và chiều cao <= 20.0 cm, căn giữa trang hoàn hảo (`WD_ALIGN_PARAGRAPH.CENTER`)
 - **Chất lượng hiển thị**: Kết xuất từ Mermaid CLI với scale factor 2 (DPI cao), font Segoe UI 18-20px rõ nét từng con chữ và chi tiết kỹ thuật
 
@@ -146,7 +180,7 @@
 
 ## 9. Hướng Dẫn Cập Nhật và Xuất Báo Cáo
 
-1. Mở tệp `docs/report/ADRnangcaobaocao_v2.docx` bằng Microsoft Word.
+1. Mở tệp `docs/report/ADRnangcaobaocao_v4.docx` bằng Microsoft Word.
 2. Nhấn `Ctrl + A` (chọn toàn bộ văn bản), sau đó nhấn phím `F9`.
 3. Khi hộp thoại xuất hiện, chọn **"Update entire table"** (Cập nhật toàn bộ bảng) cho cả Mục lục và Danh mục hình ảnh để Word tự động tính toán số trang chính xác.
 4. Sau khi chụp thêm ảnh thực tế theo `docs/report/can-chup.md` và lưu vào `docs/report/img/`, chỉ cần chạy lại lệnh:

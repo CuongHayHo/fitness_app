@@ -6,7 +6,7 @@ Theo dõi vận động, kiểm soát dinh dưỡng và duy trì lối sống l�
 
 Hệ điều hành Android áp dụng chính sách quản lý tài nguyên nghiêm ngặt: siết chặt tác vụ ngầm qua chế độ ngủ sâu (*Doze Mode*), phân loại dịch vụ tiền cảnh (*Foreground Service Types* như `health` từ Android 14), và kiểm soát quyền truy cập cảm biến. Điều này đòi hỏi ứng dụng phải đếm bước liên tục, bền bỉ ngay cả khi tắt màn hình hay khởi động lại máy, đồng thời giảm tiêu hao pin.
 
-Mô hình Google Gemini (`gemini-3.8-flash`, dự phòng `gemini-3.7-flash`) hỗ trợ nhận diện món ăn qua hình ảnh và giọng nói để ước tính năng lượng, dinh dưỡng hiệu quả.
+Mô hình Google Gemini (`gemini-2.5-flash`) hỗ trợ nhận diện món ăn qua hình ảnh, văn bản và giọng nói để ước tính năng lượng, dinh dưỡng.
 
 Từ thực tiễn đó, nhóm chọn đề tài: **"Xây dựng ứng dụng theo dõi sức khỏe và luyện tập Fitness Tracker trên nền tảng Android tích hợp trí tuệ nhân tạo Gemini"** cho đồ án môn Lập trình Android nâng cao.
 
@@ -16,17 +16,17 @@ Từ thực tiễn đó, nhóm chọn đề tài: **"Xây dựng ứng dụng th
 
 - **Ứng dụng thành phần cốt lõi Android**: Hiện thực dịch vụ tiền cảnh `StepCounterService` loại `health` kết hợp gộp mẫu cảm biến (*Sensor Batching 10s*) trên `TYPE_STEP_COUNTER` để tiết kiệm pin; đăng ký `BootReceiver` tự phục hồi sau khởi động máy; phát triển tiện ích màn hình chính (*App Widget*) bằng `AppWidgetProvider` và `RemoteViews`.
 - **Thiết lập cầu nối nền tảng**: Xây dựng kênh giao tiếp hai chiều qua `MethodChannel` (điều khiển dịch vụ, xin miễn trừ Doze Mode, làm mới widget) và `EventChannel` (truyền luồng bước chân); chia sẻ dữ liệu qua `FlutterSharedPreferences`.
-- **Kiến trúc dữ liệu cục bộ trước tiên (*Local-First*)**: Lưu trữ dữ liệu trên SQLite gồm 7 bảng có chỉ mục, bảo đảm hoạt động khi mất mạng; đồng bộ hai chiều phân đoạn với Cloud Firestore khi đăng nhập Google.
-- **Tích hợp trí tuệ nhân tạo**: Ứng dụng Gemini AI kết hợp quét mã vạch Open Food Facts và nhận diện giọng nói để ghi nhận thực phẩm và gợi ý luyện tập.
+- **Kiến trúc dữ liệu cục bộ trước tiên (*Local-First*)**: Lưu trữ dữ liệu trên thiết bị bằng SQLite (7 bảng có chỉ mục) kết hợp SharedPreferences, bảo đảm hoạt động khi mất mạng; đồng bộ hai chiều với Cloud Firestore khi đăng nhập Google.
+- **Tích hợp trí tuệ nhân tạo**: Ứng dụng Gemini AI (`gemini-2.5-flash`) kết hợp quét mã vạch Open Food Facts và nhận diện giọng nói để ghi nhận thực phẩm, tư vấn dinh dưỡng và tạo bài tập.
 
 ## 3. Phạm vi nghiên cứu & phát triển
 
 - **Phạm vi nền tảng**: Nghiên cứu Android từ `minSdk = 26` đến Android 16 (API 36). Thử nghiệm thực tế trên Xiaomi HyperOS 3.0 (Android 16) và môi trường ADB.
 - **Phạm vi chức năng**: Ứng dụng gồm 4 phân hệ chính:
   1. *Vận động và sinh hoạt*: Đếm bước chân nền, tính calo tiêu hao, theo dõi nước uống và nhắc nhở theo giờ.
-  2. *Luyện tập thể chất*: Quản lý bài tập, mô phỏng động học giải phẫu 18 khớp xương của 22 bài tập bằng hình học 2D, thông báo đếm ngược nghỉ hiệp.
-  3. *Dinh dưỡng thông minh*: Quét mã vạch sản phẩm, nhận diện món ăn qua ảnh và giọng nói bằng Gemini AI, tính calo nạp/tiêu.
-  4. *Hồ sơ và an toàn*: Tính chỉ số sinh trắc (BMR, TDEE, tỷ lệ mỡ), khóa bảo vệ sinh trắc học (*BiometricPrompt*), đồng bộ Health Connect.
+  2. *Luyện tập thể chất*: Danh mục 17 bài tập, mô phỏng động học giải phẫu 18 khớp xương cho 21 động tác bằng hình học 2D, AI tạo bài tập, thông báo đếm ngược nghỉ hiệp.
+  3. *Dinh dưỡng thông minh*: Quét mã vạch sản phẩm, nhận diện món ăn qua ảnh, văn bản và giọng nói bằng Gemini AI, tính calo nạp/tiêu.
+  4. *Hồ sơ và an toàn*: Tính chỉ số sinh trắc (BMI, BMR, TDEE, tỷ lệ mỡ), khóa bảo vệ sinh trắc học (*BiometricPrompt*), kết nối Health Connect.
 - **Giới hạn đề tài**: Sử dụng cảm biến tích hợp trên điện thoại; tính năng AI gọi API trực tuyến của Google.
 
 ## 4. Cấu trúc báo cáo

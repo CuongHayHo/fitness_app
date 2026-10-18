@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-verify_report.py - Kịch bản kiểm định độc lập tài liệu báo cáo Word ADRnangcaobaocao_v2.docx.
+verify_report.py - Kịch bản kiểm định độc lập tài liệu báo cáo Word ADRnangcaobaocao_v4.docx.
 Kiểm tra toàn diện:
 1. Quy chuẩn cỡ chữ (14pt Normal/List, >=11pt Code/Table/Caption, Headings nguyên vẹn, 0 run < 11pt).
 2. Quy chuẩn độ rộng bảng (WordprocessingML fixed layout, <w:tblGrid>, <w:tcW>, không cột nào < 2.0cm trừ STT, tổng 16.0cm).
@@ -21,7 +21,7 @@ if sys.stderr and hasattr(sys.stderr, 'reconfigure'):
 
 REPORT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(REPORT_DIR))
-OUTPUT_PATH = os.path.join(REPORT_DIR, "ADRnangcaobaocao_v2.docx")
+OUTPUT_PATH = os.path.join(REPORT_DIR, "ADRnangcaobaocao_v4.docx")
 TEMPLATE_PATH = os.path.join(REPORT_DIR, "goc", "ADRnangcaobaocao.docx")
 LOG_PATH = os.path.join(REPORT_DIR, "build-log.md")
 
@@ -232,11 +232,17 @@ def run_verification():
     print(f"  + Tổng số inline shapes trong tài liệu: {len(all_shapes)} (1 logo trang bìa + 9 sơ đồ Mermaid)")
 
     diagram_shapes = all_shapes[1:] # Bỏ qua logo trang bìa
-    if len(diagram_shapes) != 9:
-        print(f"    [FAIL] Số lượng sơ đồ Mermaid không đúng: {len(diagram_shapes)} (kỳ vọng 9)")
+    # Số hình kỳ vọng = số cú pháp ![Hình ...](img/...) trong md/*.md (9 sơ đồ Mermaid + ảnh chụp màn hình)
+    import glob
+    expected_figures = sum(
+        len(re.findall(r'!\[Hình [^\]]*\]\(img/[^)]+\)', open(f, encoding='utf-8').read()))
+        for f in glob.glob(os.path.join(REPORT_DIR, "md", "*.md"))
+    )
+    if len(diagram_shapes) != expected_figures:
+        print(f"    [FAIL] Số lượng hình không đúng: {len(diagram_shapes)} (kỳ vọng {expected_figures} theo md/*.md)")
         all_passed = False
     else:
-        print("    [PASS] Đầy đủ 9/9 sơ đồ kiến trúc Mermaid được chèn vào tài liệu.")
+        print(f"    [PASS] Đầy đủ {expected_figures}/{expected_figures} hình (sơ đồ Mermaid và ảnh chụp) được chèn vào tài liệu.")
 
     image_errors = []
     print("\n  --- BẢNG THỐNG KÊ KÍCH THƯỚC 9 SƠ ĐỒ TRONG FILE WORD ---")

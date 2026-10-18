@@ -33,8 +33,8 @@ Vòng đời `Activity` gồm: `onCreate()`, `onStart()`, `onResume()`, `onPause
 
 Kiến trúc ứng dụng Android gồm các khối thành phần cốt lõi liên kết qua thông điệp `Intent`:
 
-1. *Activity*: Đại diện cho giao diện người dùng đơn lẻ. Lớp `MainActivity` kế thừa `FlutterActivity`, đóng vai trò là cửa sổ đồ họa chính khởi tạo Flutter Engine, tiếp nhận sự kiện chạm và làm điểm kết nối các kênh giao tiếp nền tảng.
-2. *Service và Foreground Service*: Thực thi tác vụ kéo dài không cần giao diện. Kể từ Android 8.0 (API level 26), hệ điều hành giới hạn thực thi nền (*Background Execution Limits*). Để theo dõi vận động liên tục, ứng dụng sử dụng dịch vụ tiền cảnh (*Foreground Service*). Dịch vụ tiền cảnh thuộc nhóm tiến trình tiền cảnh, không bị lmkd tiêu diệt khi thiếu RAM, và bắt buộc gắn với một thông báo liên tục (*Ongoing Notification*) trên khay hệ thống. Khi khởi tạo, ứng dụng gọi `startForegroundService()` và gọi `startForeground()` trong `onCreate()` kèm cờ `START_STICKY` để hệ thống tự khởi động lại dịch vụ nếu xảy ra sự cố đột ngột.
+1. *Activity*: Đại diện cho giao diện người dùng đơn lẻ. Lớp `MainActivity` kế thừa `FlutterFragmentActivity`, đóng vai trò là cửa sổ đồ họa chính khởi tạo Flutter Engine, tiếp nhận sự kiện chạm và làm điểm kết nối các kênh giao tiếp nền tảng. Ứng dụng dùng `FlutterFragmentActivity` (thay vì `FlutterActivity`) vì hai plugin hệ thống cần một `FragmentActivity`: plugin `health` đăng ký `ActivityResultLauncher` để mở hộp thoại cấp quyền của Health Connect, còn `local_auth` cần `FragmentActivity` để hiển thị `BiometricPrompt`.
+2. *Service và Foreground Service*: Thực thi tác vụ kéo dài không cần giao diện. Kể từ Android 8.0 (API level 26), hệ điều hành giới hạn thực thi nền (*Background Execution Limits*). Để theo dõi vận động liên tục, ứng dụng sử dụng dịch vụ tiền cảnh (*Foreground Service*). Dịch vụ tiền cảnh thuộc nhóm tiến trình tiền cảnh, không bị lmkd tiêu diệt khi thiếu RAM, và bắt buộc gắn với một thông báo liên tục (*Ongoing Notification*) trên khay hệ thống. Khi khởi tạo, ứng dụng gọi `startForegroundService()`; dịch vụ gọi `startForeground()` ngay trong `onCreate()`, còn `onStartCommand()` trả về `START_STICKY` để hệ thống tự khởi động lại dịch vụ nếu tiến trình bị dừng đột ngột.
 
 ```xml
 <service
@@ -42,7 +42,7 @@ Kiến trúc ứng dụng Android gồm các khối thành phần cốt lõi li�
     android:foregroundServiceType="health"
     android:exported="false" />
 ```
-(Nguồn: android/app/src/main/AndroidManifest.xml:56-59)
+(Nguồn: android/app/src/main/AndroidManifest.xml:69-72)
 
 3. *BroadcastReceiver*: Lắng nghe và phản hồi thông điệp truyền phát (*Broadcast Intent*). Đăng ký tĩnh khai báo trong `AndroidManifest.xml` (như `BootReceiver` lắng nghe `BOOT_COMPLETED` để tự phục hồi dịch vụ đếm bước). Đăng ký động thực hiện qua mã lệnh (như bộ thu trong `MainActivity`), từ Android 13 (API level 33) yêu cầu chỉ định rõ cờ an toàn `Context.RECEIVER_NOT_EXPORTED` nhằm ngăn chặn các thông điệp giả mạo từ ứng dụng bên ngoài.
 4. *App Widget*: Tiện ích hiển thị trên màn hình chính (*Home Screen*), cho phép người dùng xem nhanh thông tin mà không cần mở ứng dụng. App Widget chạy trên tiến trình Launcher thông qua `AppWidgetProvider` kết hợp với `RemoteViews`, cập nhật dữ liệu định kỳ qua `AppWidgetManager`.
@@ -123,7 +123,7 @@ MethodChannel(flutterEngine.dartExecutor.binaryMessenger, METHOD_CHANNEL).setMet
     }
 }
 ```
-(Nguồn: android/app/src/main/kotlin/com/example/fitness_tracker/MainActivity.kt:33-43)
+(Nguồn: android/app/src/main/kotlin/com/example/fitness_tracker/MainActivity.kt:35-45)
 
 Trong dự án, `MethodChannel` (`'com.example.fitness_tracker/service'`) được dùng để điều khiển khởi chạy dịch vụ nền `StepCounterService`, kiểm tra miễn trừ tiết kiệm pin (`isIgnoringBatteryOptimizations`), yêu cầu mở hộp thoại xin bỏ qua Doze mode (`requestIgnoreBatteryOptimizations`), và yêu cầu cập nhật App Widget (`updateWidget`).
 
@@ -151,17 +151,17 @@ Bảng 1.1: Danh mục công nghệ và thư viện chính trong dự án
 | **Đám mây** | `firebase_auth` & `cloud_firestore` | ^6.7 / ^6.10 | Xác thực người dùng và đồng bộ NoSQL 2 chiều |
 | | `google_sign_in` | ^7.2.0 | Đăng nhập một chạm qua Google OAuth |
 | **Hệ thống** | `local_auth` | ^3.0.2 | Xác thực sinh trắc học vân tay qua BiometricPrompt |
-| | `health` | ^13.3.2 | Tích hợp và đồng bộ với Google Health Connect |
+| | `health` | ^13.3.2 | Xin quyền và đọc dữ liệu từ Google Health Connect |
 | | `flutter_local_notifications` | ^22.0.0-dev.3 | Thông báo nhắc nước, đồng hồ nghỉ hiệp và Notification Channel |
 | | `permission_handler` | ^11.3.1 | Quản lý yêu cầu cấp quyền thực thi runtime |
-| **AI & Dịch vụ** | `google_generative_ai` | ^0.4.7 | SDK gọi mô hình Gemini (`gemini-3.8-flash` / `gemini-3.7-flash`) |
+| **AI & Dịch vụ** | `google_generative_ai` | ^0.4.7 | SDK gọi mô hình Gemini `gemini-2.5-flash` |
 | | `http` (Open Food Facts) | ^1.6.0 | REST API tra cứu cơ sở dữ liệu dinh dưỡng sản phẩm |
 | | `mobile_scanner` | ^7.4.2 | Quét mã vạch thực phẩm qua CameraX và ML Kit |
 | | `speech_to_text` | ^7.4.0 | Nhận dạng giọng nói chuyển thành văn bản ghi món ăn |
 | **Giao diện** | `fl_chart` | ^1.2.0 | Kết xuất biểu đồ cột calo và biểu đồ tròn macro |
 | | `figma_squircle` | ^0.6.3 | Bo góc squircle mịn cho thẻ giao diện Dark Theme |
 
-Hệ sinh thái thư viện trên hỗ trợ mô hình *Local-First*: SQLite (`sqflite`) là nguồn dữ liệu chính tại chỗ, đảm bảo ứng dụng vận hành bình thường khi mất kết nối mạng. Tầng AI tận dụng Google Gemini phản hồi luồng trực tiếp, kết hợp bộ đệm thực phẩm ngoại tuyến nhằm duy trì tính ổn định trong mọi điều kiện sử dụng.
+Hệ sinh thái thư viện trên hỗ trợ mô hình *Local-First*: SQLite (`sqflite`) và SharedPreferences lưu dữ liệu tại chỗ, đảm bảo ứng dụng vận hành bình thường khi mất kết nối mạng. Tầng AI gọi Google Gemini (`gemini-2.5-flash`), kết hợp bộ đệm 23 món ăn tính sẵn và cho phép nhập tay khi không gọi được AI.
 
 ---
 
@@ -188,5 +188,5 @@ Toàn bộ quá trình lập trình, phân tích mã nguồn, kiểm thử tự 
   flutter build apk --debug --dart-define-from-file=.env
   ```
 - Thiết bị thử nghiệm vật lý: Điện thoại Xiaomi, model `25053RT47C`, chạy Xiaomi HyperOS 3.0 trên nền tảng Android 16 (API level 36), tích hợp Google Play Services.
-- Cài đặt và gỡ lỗi: Cài đặt qua kết nối gỡ lỗi không dây (*Wireless Debugging*) bằng lệnh `adb install`. Ứng dụng khởi động ổn định, nhật ký `adb logcat` không ghi nhận sự cố dừng đột ngột (`FATAL EXCEPTION` hoặc `AndroidRuntime`).
+- Cài đặt và gỡ lỗi: Cài đặt qua cáp USB (*USB debugging*) hoặc gỡ lỗi không dây (*Wireless Debugging*) bằng lệnh `adb install`. Ứng dụng khởi động ổn định, vùng nhật ký sự cố `adb logcat -b crash` không ghi nhận `FATAL EXCEPTION` nào của ứng dụng.
 - Lưu ý triển khai trên HyperOS: Do chính sách tiết kiệm pin nghiêm ngặt của HyperOS, người dùng cần bật "Tự khởi chạy" (*Autostart*) và đặt pin "Không hạn chế" (*No restrictions*) để dịch vụ tiền cảnh đếm bước chân vận hành ổn định lâu dài.

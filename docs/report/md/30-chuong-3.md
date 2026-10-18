@@ -23,7 +23,7 @@ Từ Android 14 (API level 34), Google yêu cầu mọi dịch vụ chạy nền
     android:foregroundServiceType="health"
     android:exported="false" />
 ```
-(Nguồn: `android/app/src/main/AndroidManifest.xml:4-5,56-59`)
+(Nguồn: `android/app/src/main/AndroidManifest.xml:4-5,69-72`)
 
 Vòng đời của `StepCounterService` khởi đầu tại `onCreate()` với ba tác vụ:
 1. Tạo kênh thông báo (*Notification Channel*) mức ưu tiên `IMPORTANCE_LOW` không rung, không chuông.
@@ -81,10 +81,10 @@ Sau khi tính toán, dịch vụ lưu kết quả vào `FlutterSharedPreferences
 
 ![Hình 3.1: Quy trình thu thập và tính toán bước chân trong StepCounterService](img/so-do-step-counter.png)
 
-Thông báo của dịch vụ được duy trì trên thanh trạng thái để người dùng theo dõi tiến độ:
+Thông báo của dịch vụ được duy trì trên thanh trạng thái, hiển thị số bước trong ngày dạng "Hôm nay: N / 10000 bước (x%)" và được cập nhật sau mỗi lần dịch vụ nhận dữ liệu cảm biến:
 
 ![Hình 3.2: Thông báo liên tục của dịch vụ chạy nền StepCounterService](img/chup-step-notification.png)
-> CHỤP: Notification của StepCounterService trên thanh thông báo / hiển thị số bước chân cập nhật liên tục và thanh tiến độ / khởi chạy ứng dụng và bật đếm bước chân.
+> CHỤP: Notification của StepCounterService trên thanh thông báo / hiển thị số bước chân trong ngày / khởi chạy ứng dụng và bật đếm bước chân.
 
 ---
 
@@ -107,7 +107,7 @@ Khi thiết bị khởi động lại, các tiến trình trong RAM bị giải 
     </intent-filter>
 </receiver>
 ```
-(Nguồn: `android/app/src/main/AndroidManifest.xml:7,71-81`)
+(Nguồn: `android/app/src/main/AndroidManifest.xml:7,84-94`)
 
 Bộ lọc Intent Filter lắng nghe bốn hành động phát sóng:
 1. `android.intent.action.BOOT_COMPLETED`: Phát ra khi hệ thống khởi động xong và người dùng mở khóa màn hình lần đầu.
@@ -135,6 +135,8 @@ if (action == Intent.ACTION_BOOT_COMPLETED ||
 
 Từ Android 8.0, việc gọi `startService()` từ môi trường nền bị cấm. Mã nguồn sử dụng `startForegroundService()`. Hệ điều hành cấp khoảng 5 giây để dịch vụ hoàn tất lệnh `startForeground()`. Dịch vụ đọc lại các mốc bù trừ từ `SharedPreferences` và tiếp tục thu thập dữ liệu cảm biến.
 
+Lưu ý thực tế trên HyperOS: khi thử cập nhật ứng dụng qua `adb install -r` (phát `MY_PACKAGE_REPLACED`) trong lúc chưa bật quyền *Tự khởi chạy* (*Autostart*), dịch vụ không tự chạy lại cho đến khi người dùng mở ứng dụng. Điều này phù hợp với cơ chế Autostart của HyperOS/MIUI vốn chặn ứng dụng tự khởi động từ broadcast hệ thống; nhóm chưa kiểm tra trường hợp khởi động lại máy (`BOOT_COMPLETED`).
+
 ---
 
 ## 3.3. Tiện ích màn hình chính App Widget
@@ -149,16 +151,31 @@ Cấu hình widget được khai báo trong `res/xml/fitness_app_widget_info.xml
 
 ```xml
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:minWidth="250dp"
-    android:minHeight="110dp"
+    android:minWidth="180dp"
+    android:minHeight="90dp"
+    android:targetCellWidth="4"
+    android:targetCellHeight="2"
     android:updatePeriodMillis="1800000"
     android:initialLayout="@layout/fitness_app_widget"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen" />
 ```
-(Nguồn: `android/app/src/main/res/xml/fitness_app_widget_info.xml:1-11`)
+(Nguồn: `android/app/src/main/res/xml/fitness_app_widget_info.xml:2-10`)
 
-Thuộc tính `updatePeriodMillis` được đặt là 1.800.000 ms (30 phút) — tần suất cập nhật định kỳ tối thiểu theo quy định hệ điều hành để bảo vệ dung lượng pin.
+Thuộc tính `updatePeriodMillis` được đặt là 1.800.000 ms (30 phút) — tần suất cập nhật định kỳ tối thiểu theo quy định hệ điều hành để bảo vệ dung lượng pin. Hai thuộc tính `targetCellWidth`/`targetCellHeight` (Android 12+) gợi ý launcher đặt widget ở kích thước 4×2 ô.
+
+Do layout được Launcher dựng lại trong tiến trình khác, `RemoteViews` chỉ chấp nhận một tập lớp giao diện xác định (`FrameLayout`, `LinearLayout`, `RelativeLayout`, `TextView`, `ImageView`, `ProgressBar`, `Button`…). Lớp `android.view.View` thuần không nằm trong danh sách này: nếu layout chứa `<View>`, Launcher ném `InflateException: Class not allowed to be inflated android.view.View` và hiển thị "Không thể tải tiện ích". Vì vậy, các đường kẻ phân cách trong `fitness_app_widget.xml` được dựng bằng `FrameLayout` có màu nền:
+
+```xml
+<!-- RemoteViews không cho phép android.view.View, nên đường kẻ dùng FrameLayout có màu nền -->
+<FrameLayout
+    android:layout_width="match_parent"
+    android:layout_height="1dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginBottom="10dp"
+    android:background="#22FFFFFF" />
+```
+(Nguồn: `android/app/src/main/res/layout/fitness_app_widget.xml:36-43`)
 
 ### 3.3.2. Cập nhật dữ liệu từ SharedPreferences và điều hướng với PendingIntent
 
@@ -201,12 +218,12 @@ Hệ thống thông báo trong ứng dụng đảm nhận hai nhiệm vụ: nh�
 
 Từ Android 8.0, mọi thông báo bắt buộc phải được gắn vào một Kênh thông báo (*Notification Channel*). Nhóm thiết lập ba kênh:
 1. `StepCounterChannel`: Mức ưu tiên `IMPORTANCE_LOW`, không phát âm thanh, không rung, phục vụ thông báo thường trực của `StepCounterService`.
-2. `water_reminder_channel`: Mức ưu tiên `IMPORTANCE_MAX`, bật rung (`enableVibration = true`) và chuông báo, nhắc nhở bổ sung nước.
-3. `rest_timer_channel`: Mức ưu tiên `IMPORTANCE_HIGH`, cấu hình `onlyAlertOnce = true` để khi cập nhật từng giây đếm ngược, thông báo không phát âm thanh hay rung liên tục.
+2. `water_reminder_channel`: Mức ưu tiên `Importance.max` (cấu hình qua `flutter_local_notifications`), bật rung (`enableVibration = true`) và chuông báo, nhắc nhở bổ sung nước.
+3. `rest_timer_channel`: Mức ưu tiên `Importance.high`, cấu hình `onlyAlertOnce = true` để khi cập nhật từng giây đếm ngược, thông báo không phát âm thanh hay rung liên tục.
 
 ### 3.4.2. Lập lịch báo thức chính xác với AlarmManager và quyền SCHEDULE_EXACT_ALARM
 
-Để nhắc nhở uống nước từ 08:00 đến 21:00 hàng ngày (mỗi 1, 2 hoặc 3 giờ), ứng dụng cần đánh thức hệ thống đúng mốc thời gian. Các cơ chế như `WorkManager` chỉ hỗ trợ lịch trình linh hoạt và bị hoãn lại khi gom nhóm tác vụ.
+Để nhắc nhở uống nước hằng ngày bắt đầu từ 08:00 theo chu kỳ 1, 2 hoặc 3 giờ (mặc định 2 giờ: 7 mốc 08:00–20:00; chu kỳ 1 giờ: 14 mốc 08:00–21:00), ứng dụng cần đánh thức hệ thống đúng mốc thời gian. Các cơ chế như `WorkManager` chỉ hỗ trợ lịch trình linh hoạt và bị hoãn lại khi gom nhóm tác vụ.
 
 Nhóm sử dụng cơ chế báo thức chính xác qua plugin `flutter_local_notifications` kết hợp thư viện `timezone`. Lệnh `zonedSchedule` được cấu hình chế độ `AndroidScheduleMode.exactAllowWhileIdle`, tương ứng với API native `AlarmManager.setExactAndAllowWhileIdle()`. API này phát tín hiệu báo thức đúng giờ ngay cả khi thiết bị đang ở chế độ ngủ sâu (*Doze mode*):
 
@@ -221,7 +238,9 @@ await _notificationsPlugin.zonedSchedule(
   matchDateTimeComponents: DateTimeComponents.time,
 );
 ```
-(Nguồn: `lib/services/notification_service.dart:148-156`)
+(Nguồn: `lib/services/notification_service.dart:152-160`)
+
+Kiểm tra trên thiết bị bằng `adb shell dumpsys alarm` cho thấy các lịch nhắc được đăng ký với loại `RTC_WAKEUP`, `window=0` (thời điểm chính xác) và cờ cho phép kích hoạt khi máy ở chế độ Doze. Mỗi lịch dùng một định danh riêng trong dải `1001`–`1020`; thông báo gửi ngay và thông báo thử nghiệm dùng định danh nằm ngoài dải này nên không ghi đè lịch nhắc hằng ngày.
 
 Từ Android 12 (API level 31), ứng dụng khai báo quyền `SCHEDULE_EXACT_ALARM` và `USE_EXACT_ALARM` trong Manifest:
 
@@ -233,10 +252,12 @@ Từ Android 12 (API level 31), ứng dụng khai báo quyền `SCHEDULE_EXACT_A
 
 ### 3.4.3. Thông báo đếm ngược nghỉ hiệp với thanh tiến trình trực quan
 
-Trong phân hệ tập luyện, khi hoàn thành hiệp nâng tạ, ứng dụng kích hoạt đồng hồ đếm ngược thời gian nghỉ (60 hoặc 90 giây). Nếu người dùng tắt màn hình hoặc chuyển sang ứng dụng khác, thông báo trên `rest_timer_channel` hiển thị tiến độ với các thuộc tính:
+Trong phân hệ tập luyện, khi hoàn thành hiệp nâng tạ, ứng dụng kích hoạt đồng hồ đếm ngược thời gian nghỉ (mặc định 60 giây, người dùng có thể cộng thêm 15 giây hoặc bỏ qua). Nếu người dùng tắt màn hình hoặc chuyển sang ứng dụng khác, thông báo trên `rest_timer_channel` hiển thị tiến độ với các thuộc tính:
 - `ongoing: true`: Giữ thông báo cố định trên khay hệ thống.
 - `showProgress: true`, `maxProgress: totalSeconds`, `progress: currentProgress`: Hiển thị thanh tiến trình đồ họa co ngắn dần theo từng giây.
 - Khi hết giờ nghỉ (`remainingSeconds == 0`), ứng dụng hủy thông báo đếm ngược và phát thông báo kết thúc có rung và chuông để người dùng bước vào hiệp tiếp theo.
+
+![Hình 3.4: Thông báo đếm ngược nghỉ hiệp với thanh tiến trình trên khay hệ thống](img/chup-rest-timer-notification.png)
 
 ---
 
@@ -275,9 +296,9 @@ val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply 
 }
 startActivity(intent)
 ```
-(Nguồn: `android/app/src/main/kotlin/com/example/fitness_tracker/MainActivity.kt:56-59`)
+(Nguồn: `android/app/src/main/kotlin/com/example/fitness_tracker/MainActivity.kt:58-61`)
 
-Intent này mở trực tiếp hộp thoại hệ thống cho phép người dùng cấp quyền. Ứng dụng đã khai báo quyền tương ứng trong Manifest:
+Trên Android gốc, Intent này mở trực tiếp hộp thoại hệ thống cho phép người dùng cấp quyền. Trên thiết bị thử nghiệm chạy HyperOS, Intent được chuyển tới trang *Battery details* của MIUI, nơi người dùng chọn chế độ "No restrictions" thay cho chế độ mặc định "Battery saver (recommended)". Ứng dụng đã khai báo quyền tương ứng trong Manifest:
 
 ```xml
 <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
@@ -285,6 +306,8 @@ Intent này mở trực tiếp hộp thoại hệ thống cho phép người dù
 (Nguồn: `android/app/src/main/AndroidManifest.xml:14`)
 
 Khi nằm trong danh sách miễn trừ, dịch vụ được hệ điều hành ưu tiên duy trì trong bộ nhớ và tiếp nhận sự kiện cảm biến ngay cả khi thiết bị vào chu kỳ Doze sâu.
+
+![Hình 3.5: Trang thiết lập pin của HyperOS mở từ yêu cầu miễn trừ tối ưu hóa pin](img/chup-hyperos-battery.png)
 
 ---
 
@@ -311,7 +334,7 @@ override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
     }
 }
 ```
-(Nguồn: `android/app/src/main/kotlin/com/example/fitness_tracker/MainActivity.kt:84-93`)
+(Nguồn: `android/app/src/main/kotlin/com/example/fitness_tracker/MainActivity.kt:86-94`)
 
 Khi `StepCounterService` ghi nhận bước chân mới, nó phát Intent mang theo số bước. `stepReceiver` tiếp nhận dữ liệu và gửi vào `eventSink.success(steps)`, truyền qua BinaryMessenger để giao diện cập nhật vòng tròn tiến độ.
 
@@ -321,10 +344,10 @@ Khi `StepCounterService` ghi nhận bước chân mới, nó phát Intent mang t
 - **Tầng Native đọc/ghi**: `StepCounterService` và `FitnessAppWidgetProvider` truy xuất qua `context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)` với các khóa: `flutter.today_steps`, `flutter.water_cups_today`.
 - **Tầng Dart đọc/ghi**: `StepRepository` và `StorageService` của Flutter đọc và ghi vào cùng tệp XML này tại đường dẫn `/data/data/com.nhh031.fitness_tracker/shared_prefs/FlutterSharedPreferences.xml`.
 
-![Hình 3.4: Kiến trúc cầu nối Platform Channel và dữ liệu dùng chung](img/so-do-platform-bridge.png)
+![Hình 3.6: Kiến trúc cầu nối Platform Channel và dữ liệu dùng chung](img/so-do-platform-bridge.png)
 
 #### Phân tích rủi ro tranh chấp dữ liệu (Race Condition)
-Cơ chế `SharedPreferences` của Android không hỗ trợ khóa tiến trình đồng thời (*Inter-Process Locking*). Trong `StepCounterService.kt:130`, mã Kotlin gọi `apply()` để lưu số bước mới sau mỗi chu kỳ cảm biến. Cùng thời điểm, tại `step_repository.dart`, tầng Flutter cũng có thể ghi dữ liệu khi người dùng lưu mốc vận động. Do hai tiến trình/luồng ghi độc lập không có cơ chế khóa tương hỗ (*Mutex*), nguy cơ ghi đè làm mất mốc bước chân có thể phát sinh nếu các thao tác ghi diễn ra đồng thời. Trong các giai đoạn tiếp theo, việc chuyển đổi vùng nhớ dùng chung sang `Room Database` kết hợp `ContentProvider` sẽ giúp đảm bảo tính toàn vẹn dữ liệu tốt hơn.
+Cơ chế `SharedPreferences` của Android không hỗ trợ khóa tiến trình đồng thời (*Inter-Process Locking*). Trong `StepCounterService.kt:129-131`, mã Kotlin gọi `apply()` để lưu số bước mới sau mỗi chu kỳ cảm biến. Cùng thời điểm, tại `step_repository.dart`, tầng Flutter cũng có thể ghi dữ liệu khi người dùng lưu mốc vận động. Do hai tiến trình/luồng ghi độc lập không có cơ chế khóa tương hỗ (*Mutex*), nguy cơ ghi đè làm mất mốc bước chân có thể phát sinh nếu các thao tác ghi diễn ra đồng thời. Trong các giai đoạn tiếp theo, việc chuyển đổi vùng nhớ dùng chung sang `Room Database` kết hợp `ContentProvider` sẽ giúp đảm bảo tính toàn vẹn dữ liệu tốt hơn.
 
 ---
 
@@ -344,17 +367,34 @@ Từ Android 14 (API level 34), Google tích hợp **Health Connect** vào lõi 
     </intent>
 </queries>
 ```
-(Nguồn: `android/app/src/main/AndroidManifest.xml:99-103`)
+(Nguồn: `android/app/src/main/AndroidManifest.xml:112-117`)
 
-Đồng thời, ứng dụng khai báo bốn quyền đọc dữ liệu sức khỏe:
+Đồng thời, ứng dụng khai báo các quyền đọc dữ liệu sức khỏe:
 
 ```xml
 <uses-permission android:name="android.permission.health.READ_STEPS"/>
 <uses-permission android:name="android.permission.health.READ_HEART_RATE"/>
 <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED"/>
+<uses-permission android:name="android.permission.health.READ_ACTIVE_CALORIES_BURNED"/>
 <uses-permission android:name="android.permission.health.READ_SLEEP"/>
 ```
-(Nguồn: `android/app/src/main/AndroidManifest.xml:16-19`)
+(Nguồn: `android/app/src/main/AndroidManifest.xml:16-20`)
+
+Theo hướng dẫn tích hợp Health Connect, trên Android 14 trở lên ứng dụng cần khai báo màn hình giải trình quyền. Ứng dụng đáp ứng yêu cầu này bằng một `activity-alias` trỏ tới `MainActivity`, nhận Intent `VIEW_PERMISSION_USAGE` thuộc nhóm `HEALTH_PERMISSIONS`:
+
+```xml
+<activity-alias
+    android:name="ViewPermissionUsageActivity"
+    android:exported="true"
+    android:targetActivity=".MainActivity"
+    android:permission="android.permission.START_VIEW_PERMISSION_USAGE">
+    <intent-filter>
+        <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
+        <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
+    </intent-filter>
+</activity-alias>
+```
+(Nguồn: `android/app/src/main/AndroidManifest.xml:53-62`)
 
 Theo chính sách của Google, ứng dụng khai báo Intent Filter `ACTION_SHOW_PERMISSIONS_RATIONALE` trong `MainActivity`. Khi người dùng xem phần giải trình quyền trong Cài đặt của Health Connect, hệ thống sẽ mở màn hình giải thích mục đích thu thập dữ liệu của ứng dụng.
 
@@ -362,9 +402,11 @@ Theo chính sách của Google, ứng dụng khai báo Intent Filter `ACTION_SHO
 
 Lớp `HealthSyncService` phụ trách kết nối với Health Connect qua plugin `health`. Khi người dùng chọn "Kết nối Health Connect":
 1. Ứng dụng kiểm tra tính khả dụng bằng `_health.isHealthConnectAvailable()`.
-2. Yêu cầu cấp quyền qua `_health.requestAuthorization()`. Hệ thống hiển thị giao diện phân quyền chính thức của Health Connect để người dùng chọn từng chỉ số.
-3. Khi được cấp quyền, phương thức `syncNow()` truy vấn các bản ghi lịch sử trong ngày cho bốn loại chỉ số: `STEPS` (số bước), `HEART_RATE` (nhịp tim), `TOTAL_CALORIES_BURNED` (calo tiêu thụ) và `SLEEP_SESSION` (giấc ngủ).
-4. Dữ liệu đọc về được chuẩn hóa và lưu vào `StepRepository` để hiển thị trên Dashboard.
+2. Yêu cầu cấp quyền qua `_health.requestAuthorization()`. Plugin `health` mở giao diện phân quyền chính thức của Health Connect (thông qua `ActivityResultLauncher` của `FlutterFragmentActivity`) để người dùng chọn từng chỉ số: *Active calories burned*, *Heart rate*, *Sleep*, *Steps*.
+3. Khi được cấp quyền, phương thức `syncNow()` truy vấn các bản ghi lịch sử cho bốn loại chỉ số: `STEPS` (số bước), `HEART_RATE` (nhịp tim), `ACTIVE_ENERGY_BURNED` (calo tiêu hao do hoạt động) và `SLEEP_SESSION` (giấc ngủ).
+4. Số bước đọc về được lưu vào `StepRepository` nếu lớn hơn số bước hiện tại để hiển thị trên Dashboard; nhịp tim, giấc ngủ và calo hoạt động được lưu đệm để hiển thị trên thẻ Health Connect của tab Hồ sơ.
+
+![Hình 3.7: Giao diện cấp quyền Health Connect cho ứng dụng](img/chup-health-connect-permission.png)
 
 ---
 
@@ -389,13 +431,32 @@ return await _auth.authenticate(
 ```
 (Nguồn: `lib/services/biometric_service.dart:47-51`)
 
+Để plugin `local_auth` hiển thị được `BiometricPrompt`, `MainActivity` phải là một `FragmentActivity`; ứng dụng đáp ứng bằng cách kế thừa `FlutterFragmentActivity` (mục 1.2.2).
+
 Tham số `biometricOnly: false` cho phép người dùng chuyển sang nhập mã PIN, mẫu hình (*Pattern*) hoặc mật khẩu thiết bị (*Device Credential*) nếu vân tay bị mờ hoặc nhận diện khuôn mặt không thuận tiện, tránh tình trạng người dùng bị khóa hoàn toàn khỏi ứng dụng.
 
 ### 3.8.2. Cổng kiểm soát BiometricGate và hạn chế vòng đời
 
 Widget `BiometricGate` bọc ngoài màn hình chính trong cây widget. Khi ứng dụng khởi động, nếu người dùng đã bật khóa sinh trắc học, `BiometricGate` hiển thị màn hình chờ và kích hoạt hộp thoại `BiometricPrompt`. Chỉ khi xác thực thành công, `MainScreen` mới được hiển thị.
 
-`BiometricGate` sử dụng mixin `WidgetsBindingObserver` để theo dõi vòng đời qua hàm `didChangeAppLifecycleState()`. Trong quá trình kiểm tra mã nguồn, nhóm ghi nhận một hạn chế: logic hiện tại chỉ kiểm tra trạng thái `AppLifecycleState.resumed` mà chưa đặt cờ `_isLocked = true` khi ứng dụng chuyển sang trạng thái `paused` hoặc `inactive`. Do đó, sau khi mở khóa thành công một lần, nếu người dùng chuyển sang ứng dụng khác trong thời gian ngắn rồi quay lại, ứng dụng chưa tự động kích hoạt lại hộp thoại khóa. Đây là điểm nhóm sẽ hoàn thiện trong phiên bản tiếp theo.
+`BiometricGate` sử dụng mixin `WidgetsBindingObserver` để theo dõi vòng đời qua hàm `didChangeAppLifecycleState()`. Hộp thoại vân tay là một cửa sổ của SystemUI: khi nó đóng lại, ứng dụng nhận sự kiện `resumed` trước khi `authenticate()` trả kết quả. Để không mở thêm hộp thoại lần hai trong khoảng thời gian này, `BiometricGate` dùng cờ `_isAuthenticating` làm khóa tái nhập:
+
+```dart
+Future<void> _promptAuth() async {
+  if (_isAuthenticating) return;
+  _isAuthenticating = true;
+  final bool success;
+  try {
+    success = await BiometricService.instance.authenticate(reason: ...);
+  } finally {
+    _isAuthenticating = false;
+  }
+  if (success && mounted) setState(() => _isLocked = false);
+}
+```
+(Nguồn: `lib/widgets/biometric_gate.dart`, rút gọn)
+
+Hộp thoại `BiometricPrompt` được hệ thống bảo vệ chống chụp màn hình (cửa sổ an toàn), nên không thể ghi lại bằng `adb screencap`. Bên cạnh đó, nhóm ghi nhận một hạn chế: logic hiện tại chỉ kiểm tra trạng thái `AppLifecycleState.resumed` mà chưa đặt cờ `_isLocked = true` khi ứng dụng chuyển sang trạng thái `paused` hoặc `inactive`. Do đó, sau khi mở khóa thành công một lần, nếu người dùng chuyển sang ứng dụng khác trong thời gian ngắn rồi quay lại, ứng dụng chưa tự động kích hoạt lại hộp thoại khóa. Đây là điểm nhóm sẽ hoàn thiện trong phiên bản tiếp theo.
 
 ---
 
@@ -421,7 +482,9 @@ _scannerController = MobileScannerController(
 (Nguồn: `lib/widgets/barcode_scanner_sheet.dart:52-56`)
 
 3. CameraX cung cấp luồng khung hình xem trước hiển thị trên `SurfaceTexture` của Flutter. Bộ phân tích hình ảnh (*ImageAnalysis*) chuyển các khung hình dạng đệm nhị phân tới mô hình ML Kit trên thiết bị để phát hiện các định dạng mã vạch EAN-13, EAN-8, UPC-A, UPC-E.
-4. Khi mã vạch được nhận diện, ứng dụng phát phản hồi rung qua `HapticFeedback`, tạm dừng luồng quét và gọi API `Open Food Facts` để truy vấn thông tin calo, protein, carbohydrate và chất béo.
+4. Khi mã vạch được nhận diện trong `onDetect`, ứng dụng bật cờ `_isProcessing` để bỏ qua các khung hình tiếp theo (tránh gọi API trùng lặp), rồi gọi API `Open Food Facts` để truy vấn thông tin calo, protein, carbohydrate và chất béo. Người dùng chọn hệ số khẩu phần (0.5×–2.0×) và bữa ăn trước khi thêm vào nhật ký.
+
+Ngoài camera trực tiếp, người dùng có thể bấm nút thư viện ở góc trên để chọn ảnh mã vạch có sẵn: ảnh được đưa vào `MobileScannerController.analyzeImage(path)`, ML Kit phân tích ảnh tĩnh và trả về mã, sau đó đi theo cùng luồng tra cứu Open Food Facts. Trên thiết bị thử nghiệm, chọn ảnh mã EAN-13 `3017620422003` cho ra đúng sản phẩm Nutella (539 kcal/100 g).
 
 ### 3.9.2. Ghi chép món ăn bằng giọng nói qua RecognitionService
 
@@ -438,9 +501,9 @@ Dưới tầng Android, plugin liên kết với dịch vụ nhận dạng tiế
     </intent>
 </queries>
 ```
-(Nguồn: `android/app/src/main/AndroidManifest.xml:108-110`)
+(Nguồn: `android/app/src/main/AndroidManifest.xml:121-123`)
 
-Nếu thiếu khai báo `<queries>`, phương thức `initialize()` sẽ trả về `false` do cơ chế hạn chế hiển thị gói của hệ điều hành. Khi người dùng bấm giữ micro và nói, `RecognitionService` chuyển đổi âm thanh thành văn bản dạng chuỗi trả về giao diện, sau đó gửi tới mô hình Gemini để phân tích thành các trường dữ liệu món ăn và định lượng calo.
+Nếu thiếu khai báo `<queries>`, phương thức `initialize()` sẽ trả về `false` do cơ chế hạn chế hiển thị gói của hệ điều hành. `SpeechService.initialize()` được gọi khi thẻ "AI ghi nhận món ăn" trên Dashboard khởi tạo, vì vậy hộp thoại xin quyền micro xuất hiện ngay lần đầu mở Dashboard. Khi người dùng bấm nút micro và nói, `RecognitionService` chuyển đổi âm thanh thành văn bản và trả về giao diện; nội dung này được gửi tới mô hình Gemini để phân tích thành các trường dữ liệu món ăn và định lượng calo.
 
 ---
 
@@ -461,25 +524,29 @@ Bảng 3.1: Danh mục quyền hệ thống Android trong ứng dụng Fitness T
 | `RECORD_AUDIO` | Nguy hiểm (Runtime) | API 23+ | Thu âm phục vụ nhận dạng giọng nói chuyển thành món ăn. |
 | `CAMERA` | Nguy hiểm (Runtime) | API 23+ | Mở camera quét mã vạch qua CameraX và ML Kit. |
 | `FOREGROUND_SERVICE` | Thông thường (Normal) | API 28+ | Khởi chạy dịch vụ tiền đình chạy bền bỉ dưới nền hệ thống. |
-| `FOREGROUND_SERVICE_HEALTH` | Dịch vụ đặc biệt | API 34+ | Phân loại dịch vụ chạy nền thuộc nhóm sức khỏe theo quy chuẩn Google Play. |
+| `FOREGROUND_SERVICE_HEALTH` | Thông thường (Normal) | API 34+ | Phân loại dịch vụ chạy nền thuộc nhóm sức khỏe theo quy chuẩn Google Play. |
 | `RECEIVE_BOOT_COMPLETED` | Thông thường (Normal) | Mọi API | Nhận tín hiệu khởi động máy để tự kích hoạt lại `StepCounterService`. |
 | `SCHEDULE_EXACT_ALARM` | Đặc biệt (AppOps) | API 31+ | Đặt lịch báo thức chính xác cho chu kỳ nhắc nhở uống nước. |
 | `USE_EXACT_ALARM` | Thông thường (Normal) | API 33+ | Hỗ trợ thực thi báo thức chính xác trên Android 13+. |
-| `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | Quyền đặc biệt | API 23+ | Mở Intent xin đưa ứng dụng vào danh sách miễn trừ Doze mode. |
+| `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | Thông thường (Normal) | API 23+ | Mở Intent xin đưa ứng dụng vào danh sách miễn trừ Doze mode. |
 | `VIBRATE` | Thông thường (Normal) | Mọi API | Rung phản hồi khi hoàn tất thời gian nghỉ hiệp hoặc nhấn nút. |
 | `INTERNET` | Thông thường (Normal) | Mọi API | Kết nối Firebase Cloud Firestore, Open Food Facts và Gemini API. |
 | `health.READ_STEPS` | Quyền Health Connect | API 34+ | Đọc chỉ số bước chân từ nền tảng Google Health Connect. |
 | `health.READ_HEART_RATE` | Quyền Health Connect | API 34+ | Đọc chỉ số nhịp tim từ nền tảng Google Health Connect. |
 | `health.READ_TOTAL_CALORIES_BURNED` | Quyền Health Connect | API 34+ | Đọc tổng calo tiêu thụ từ nền tảng Google Health Connect. |
+| `health.READ_ACTIVE_CALORIES_BURNED` | Quyền Health Connect | API 34+ | Đọc calo tiêu hao do hoạt động (`ACTIVE_ENERGY_BURNED`). |
+| `USE_BIOMETRIC` | Thông thường (Normal) | API 28+ | Do plugin `local_auth` khai báo, gộp vào Manifest khi build. |
 | `health.READ_SLEEP` | Quyền Health Connect | API 34+ | Đọc phiên giấc ngủ từ nền tảng Google Health Connect. |
 
 ### 3.10.2. Quy trình xin cấp quyền thời gian chạy và kiểm tra bằng công cụ ADB
 
 Đối với các quyền nguy hiểm (`ACTIVITY_RECOGNITION`, `POST_NOTIFICATIONS`, `RECORD_AUDIO`, `CAMERA`), nếu ứng dụng truy cập tài nguyên phần cứng mà người dùng chưa cấp quyền tại thời điểm chạy (*Runtime*), hệ thống sẽ ném ngoại lệ `SecurityException` và dừng ứng dụng.
 
-Ứng dụng sử dụng thư viện `permission_handler` để kiểm tra và yêu cầu cấp quyền ngay trước khi tính năng được kích hoạt (*Just-in-Time Request*):
-- Khi bật đếm bước lần đầu, hàm `_initStepCounter()` gọi `Permission.activityRecognition.request()`. Nếu người dùng chấp thuận, ứng dụng mới gọi `startService` xuống tầng Native.
-- Khi người dùng mở chức năng quét mã vạch hoặc thu âm giọng nói, ứng dụng thực hiện quy trình tương tự với quyền `Permission.camera` và `Permission.microphone`.
+Thời điểm xin từng quyền trong ứng dụng (đã quan sát trên thiết bị khi cài mới):
+- `POST_NOTIFICATIONS`: xin ngay khi khởi động, trong lúc `NotificationService.init()` chạy.
+- `ACTIVITY_RECOGNITION`: xin khi widget đếm bước được dựng trên Dashboard; hàm `_initStepCounter()` gọi `Permission.activityRecognition.request()` và chỉ gọi `startService` xuống tầng Native khi người dùng chấp thuận. Nếu hộp thoại quyền đóng mà dịch vụ chưa chạy, `StepCounterWidget` kiểm tra lại quyền khi ứng dụng trở lại tiền cảnh để khởi chạy bù.
+- `RECORD_AUDIO`: xin khi Dashboard khởi tạo dịch vụ giọng nói (mục 3.9.2).
+- `CAMERA`: xin đúng lúc người dùng mở trình quét mã vạch (*Just-in-Time*).
 
 Để kiểm tra trạng thái dịch vụ tiền đình trên thiết bị thử nghiệm (Xiaomi chạy HyperOS 3, Android 16), nhóm sử dụng công cụ ADB thực thi lệnh:
 
@@ -487,19 +554,20 @@ Bảng 3.1: Danh mục quyền hệ thống Android trong ứng dụng Fitness T
 adb shell dumpsys activity services com.nhh031.fitness_tracker
 ```
 
-Kết quả phản hồi xác nhận tiến trình `StepCounterService` đang vận hành với cờ `isForeground=true`, kiểu dịch vụ `foregroundServiceType=health`, và duy trì liên kết với `NotificationManager`:
+Kết quả phản hồi xác nhận `StepCounterService` đang vận hành ở tiền cảnh với `isForeground=true`, `types=0x00000100` (giá trị của `FOREGROUND_SERVICE_TYPE_HEALTH`) và thông báo thuộc kênh `StepCounterChannel`:
 
-![Hình 3.5: Kiểm tra trạng thái Foreground Service bằng lệnh adb dumpsys](img/chup-adb-dumpsys.png)
+![Hình 3.8: Kiểm tra trạng thái Foreground Service bằng lệnh adb dumpsys](img/chup-adb-dumpsys.png)
 > CHỤP: Kết quả chạy lệnh adb shell dumpsys activity services com.nhh031.fitness_tracker / hiển thị StepCounterService với isForeground=true / chạy lệnh adb từ terminal máy tính khi kết nối điện thoại.
 
 Các câu lệnh ADB khác được nhóm sử dụng để xác minh hoạt động của ứng dụng:
 - **Kiểm tra danh sách trắng tiết kiệm pin (Doze whitelist)**:
   `adb shell dumpsys deviceidle whitelist | findstr com.nhh031.fitness_tracker`
-- **Kiểm tra trạng thái các quyền AppOps đã cấp**:
-  `adb shell cmd appops get com.nhh031.fitness_tracker`
+- **Kiểm tra các quyền runtime đã cấp**:
+  `adb shell dumpsys package com.nhh031.fitness_tracker | findstr granted`
+- **Kiểm tra lịch nhắc uống nước đã đăng ký với AlarmManager**:
+  `adb shell dumpsys alarm | findstr fitness_tracker`
 - **Kiểm tra thông tin đăng ký của App Widget**:
   `adb shell dumpsys appwidget | findstr com.nhh031.fitness_tracker`
-- **Giả lập sự kiện khởi động máy để kiểm tra BootReceiver**:
-  `adb shell am broadcast -a android.intent.action.BOOT_COMPLETED -p com.nhh031.fitness_tracker`
+- **Kiểm tra BootReceiver**: khởi động lại thiết bị bằng `adb reboot`, sau đó chạy lại `adb shell dumpsys activity services com.nhh031.fitness_tracker`. (Lệnh giả lập `am broadcast -a android.intent.action.BOOT_COMPLETED` bị hệ thống từ chối với `SecurityException: Permission Denial` trên Android 16 không root, vì đây là broadcast được bảo vệ.)
 
 Các kết quả thực nghiệm trên cho thấy các kỹ thuật lập trình Android nâng cao được triển khai trong ứng dụng vận hành ổn định và tuân thủ các quy chuẩn kiến trúc của hệ điều hành Android.

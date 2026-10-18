@@ -8,7 +8,9 @@ Màn hình bảng điều khiển trung tâm (*DashboardScreen*) đóng vai trò
 
 ### 4.1.1. Kiến trúc hiển thị và cơ chế phản ứng dữ liệu của Dashboard
 
-Màn hình `DashboardScreen` được xây dựng theo kiến trúc ghép nối mô-đun hóa, phân rã các khối thông tin thành các widget độc lập: thẻ chỉ số calo tổng hợp (`CalorieBalanceHeroWidget`), vòng tiến độ đếm bước (`StepCounterWidget`), biểu đồ cột năng lượng 7 ngày (`CaloriesChartWidget`), thẻ theo dõi nước uống (`WaterReminderWidget`), thẻ điểm số sức khỏe (`HealthScoreWidget`) và bản tin gợi ý ngày mới (`DailyAiBriefingWidget`).
+Màn hình `DashboardScreen` được xây dựng theo kiến trúc ghép nối mô-đun hóa, phân rã các khối thông tin thành các widget độc lập: thẻ chỉ số calo tổng hợp (`CalorieBalanceHeroWidget`), vòng tiến độ đếm bước (`StepCounterWidget`), biểu đồ năng lượng (`CaloriesChartWidget`), thẻ ghi nhận món ăn bằng AI (`AiFoodLoggingWidget`), thẻ theo dõi nước uống (`WaterReminderWidget`), thẻ điểm số sức khỏe (`HealthScoreWidget`) và bản tin gợi ý ngày mới (`DailyAiBriefingWidget`). Thẻ ghi nhận món ăn hiển thị tổng calo nạp so với mục tiêu calo cá nhân trong hồ sơ (ví dụ 2.152 kcal với hồ sơ thử nghiệm), cùng các lối tắt chụp ảnh món ăn, quét mã vạch, nhập bằng giọng nói và bàn phím.
+
+Các nhãn và tiêu đề một dòng trên Dashboard và các thẻ khác dùng widget `MarqueeText` tự viết: khi chữ vừa ô, widget hiển thị như `Text` thông thường; khi chữ dài hơn ô (ví dụ tiêu đề "NHẮC NHỞ UỐNG NƯỚC" trên màn hình hẹp hoặc tên món dài), chữ tự cuộn ngang theo chu kỳ dừng 1,5 giây — cuộn hết — dừng 1 giây — trở về đầu, thay vì bị cắt thành dấu "…". Widget dùng `LayoutBuilder` và `TextPainter` để đo chiều rộng chữ so với ô, rồi cuộn bằng `ScrollController.animateTo()`.
 
 Để đảm bảo giao diện luôn phản ánh dữ liệu mới nhất mà không gây lãng phí tài nguyên kết xuất đồ họa (*re-render*), ứng dụng không sử dụng phương pháp gọi lại toàn bộ hàm dựng (`setState` toàn cục) của màn hình cha. Thay vào đó, nhóm áp dụng mẫu thiết kế phản ứng trạng thái nhẹ (*reactive state pattern*) dựa trên `ValueNotifier` của Flutter Foundation. Lớp quản trị lưu trữ `StorageService` cung cấp các kênh phát tín hiệu chuyên biệt như `stepUpdateNotifier`, `waterUpdateNotifier` và `profileUpdateNotifier`. Khi có sự thay đổi từ tiến trình đếm bước nền hoặc khi người dùng hoàn thành một lượt uống nước, chỉ các widget con trực tiếp lắng nghe mới thực hiện cập nhật giao diện tương ứng. Khi đặt trong khung điều hướng bốn tab của `MainScreen`, trạng thái của `DashboardScreen` được bảo toàn nguyên vẹn nhờ cơ chế `IndexedStack`, hạn chế việc tái khởi tạo dữ liệu mỗi khi người dùng chuyển đổi tab.
 
@@ -47,17 +49,19 @@ static int calculateRealtimeCaloriesBurned({
 
 Thành phần `WaterReminderWidget` hỗ trợ người dùng theo dõi mức độ bù nước (*hydration*) trong suốt ngày dài. Giao diện thiết lập đơn vị chuẩn hóa với 1 cốc nước tương đương $250\text{ ml}$, và mục tiêu mặc định hàng ngày là 8 cốc (tương đương $2.000\text{ ml}$).
 
-Giao diện cung cấp các nút tương tác nhanh cho phép tăng hoặc giảm số cốc nước đã nạp. Khi người dùng thao tác, dữ liệu được ghi nhận vào bảng `water_logs` trong cơ sở dữ liệu SQLite thông qua `StorageService.setWaterCupsByDate()`, đồng thời kích hoạt `StorageService.waterUpdateNotifier` để đồng bộ số liệu sang các thành phần phụ thuộc. Bên cạnh đó, widget sử dụng `AnimationController` kết hợp hàm sin lượng giác trong `_WavePainter` để mô phỏng mực nước dâng động bên trong bình chứa, tạo trải nghiệm thị giác sinh động.
+Giao diện cung cấp các nút tương tác nhanh cho phép tăng hoặc giảm số cốc nước đã nạp. Khi người dùng thao tác, `StorageService.addWaterCupForDate()` / `removeWaterCupForDate()` cập nhật số cốc trong SharedPreferences (khóa `water_cups_today`, `water_volume_ml_today`) và ghi lịch sử ngày vào danh sách `daily_water_history`, đồng thời kích hoạt `StorageService.waterUpdateNotifier` để đồng bộ số liệu sang các thành phần phụ thuộc. Vì số cốc nằm trong `FlutterSharedPreferences`, App Widget ở tầng Kotlin đọc trực tiếp được giá trị này. Bên cạnh đó, widget sử dụng `AnimationController` kết hợp hàm sin lượng giác trong `_WavePainter` để mô phỏng mực nước dâng động bên trong bình chứa, tạo trải nghiệm thị giác sinh động.
 
-Để hỗ trợ duy trì thói quen lành mạnh, widget tích hợp hệ thống nhắc nhở định kỳ (mặc định mỗi 2 giờ) thông qua `NotificationService`. Widget cũng đăng ký lắng nghe sự kiện vòng đời ứng dụng thông qua `WidgetsBindingObserver`. Khi người dùng mở lại ứng dụng vào ngày mới (`AppLifecycleState.resumed`), hàm `_checkDayRolloverAndRefresh()` tự động kiểm tra mốc thời gian hệ thống và thiết lập lại bộ đếm nước về mức 0 của ngày mới, tránh tình trạng hiển thị sai lệch dữ liệu của ngày hôm trước.
+Để hỗ trợ duy trì thói quen lành mạnh, widget tích hợp hệ thống nhắc nhở định kỳ (mặc định mỗi 2 giờ) thông qua `NotificationService`. Widget cũng đăng ký lắng nghe sự kiện vòng đời ứng dụng thông qua `WidgetsBindingObserver`. Khi người dùng mở lại ứng dụng vào ngày mới (`AppLifecycleState.resumed`), hàm `_checkDayRolloverAndRefresh()` gọi `StorageService.checkAndResetWaterDaily()` để chốt sổ lượng nước của ngày cũ vào lịch sử và đặt lại bộ đếm về 0, tránh hiển thị sai lệch dữ liệu của ngày hôm trước. Thẻ còn có nút "Gửi ngay" và "Thử hẹn giờ (5s)" để kiểm tra kênh thông báo nhắc uống nước.
 
-### 4.1.4. Biểu đồ xu hướng vận động trong tuần sử dụng thư viện fl_chart
+### 4.1.4. Biểu đồ năng lượng trong ngày và trong tuần sử dụng thư viện fl_chart
 
-Nhằm giúp người dùng theo dõi xu hướng cân bằng năng lượng trung hạn, thành phần `CaloriesChartWidget` tích hợp biểu đồ cột kép `WeeklyCalorieBarChart` được xây dựng trên nền tảng thư viện đồ họa vector `fl_chart`.
+Thành phần `CaloriesChartWidget` ("Biểu đồ năng lượng") có ba chế độ xem: **24h Hôm nay**, **7 Ngày (Tuần)** và **Cân nặng**. Chế độ mặc định 24h vẽ hai đường tích lũy theo giờ — calo nạp vào và calo tiêu hao — với chấm tròn đánh dấu thời điểm hiện tại; phía trên là bốn ô tách nguồn năng lượng: Nạp vào, BMR cơ bản, Bước chân và Bài tập.
 
-Biểu đồ trực quan hóa dữ liệu trong 7 ngày gần nhất, đặt cạnh nhau hai thanh đo lường trên mỗi mốc ngày:
-- Cột màu xanh/cam thể hiện năng lượng nạp vào (*Calorie Intake*) từ các bữa ăn được ghi nhận trong nhật ký dinh dưỡng.
-- Cột màu đỏ/hồng thể hiện tổng năng lượng tiêu hao (*Calorie Burned*) bao gồm BMR tích lũy cả ngày, calo từ các buổi tập và calo từ số bước chân.
+![Hình 4.1: Biểu đồ năng lượng 24 giờ trên Dashboard](img/chup-calories-chart-24h.png)
+
+Chế độ 7 ngày dùng biểu đồ cột kép `WeeklyCalorieBarChart`, đặt cạnh nhau hai thanh đo lường trên mỗi mốc ngày:
+- Cột màu xanh lơ thể hiện năng lượng nạp vào (*Calorie Intake*) từ các bữa ăn được ghi nhận trong nhật ký dinh dưỡng.
+- Cột tiêu hao (*Calorie Burned*) gồm BMR cả ngày, calo từ các buổi tập và calo từ số bước chân; cột có màu xanh lá khi ngày đó thâm hụt năng lượng và màu cam khi thặng dư.
 
 Cấu trúc biểu đồ sử dụng `BarChart` kết hợp mảng dữ liệu `BarChartGroupData` và `BarChartRodData`. Nhóm thiết lập thuộc tính `FlTitlesData` để hiển thị nhãn các thứ trong tuần (T2 đến CN) trên trục hoành (trục X) và hiển thị chỉ số calo rút gọn (đơn vị k-kcal) trên trục tung (trục Y). Cơ chế tương tác chạm `BarTouchData` hiển thị khung chú giải (*tooltip*) chi tiết khi người dùng nhấn vào từng cột ngày, giúp nắm bắt mức độ thâm hụt hoặc thặng dư năng lượng trong tuần một cách rõ ràng.
 
@@ -92,10 +96,12 @@ int totalScore = (stepScore + workoutScore + nutritionScore + habitScore).clamp(
 ```
 (Nguồn: lib/widgets/health_score_widget.dart:76-124)
 
-Điểm số tổng hợp được phân chia thành 5 bậc xếp hạng trạng thái kèm màu sắc trực quan: *Xuất sắc* (90–100 điểm, xanh ngọc), *Rất tốt* (75–89 điểm, xanh lục), *Khá tốt* (60–74 điểm, vàng cam), *Cần cố gắng* (40–59 điểm, cam đậm), và *Khởi động* (dưới 40 điểm, xám tro). Cùng với điểm số, hệ thống tự động sinh lời khuyên động tương ứng (ví dụ: nhắc bổ sung nước nếu điểm bù nước thấp, hoặc khuyến khích đi bộ thêm nếu chưa đạt nửa mục tiêu bước).
+Điểm số tổng hợp được phân chia thành 5 bậc xếp hạng trạng thái kèm màu sắc trực quan: *Đỉnh cao* (90–100 điểm, xanh ngọc), *Rất tốt* (75–89 điểm, xanh lơ), *Tiến bộ* (60–74 điểm, vàng hổ phách), *Cần cố gắng* (40–59 điểm, cam), và *Cần cải thiện* (dưới 40 điểm, đỏ san hô). Cùng với điểm số, hệ thống tự động sinh lời khuyên động tương ứng (ví dụ: nhắc bổ sung nước nếu điểm bù nước thấp, hoặc khuyến khích đi bộ thêm nếu chưa đạt nửa mục tiêu bước).
 
-![Hình 4.1: Giao diện màn hình Dashboard tổng quan](img/chup-dashboard.png)
-> CHỤP: Tab Dashboard (tab 1) sau khi đi bộ ~500 bước và ghi 3 cốc nước / thấy được vòng tiến độ bước chân, thẻ nước và điểm sức khỏe / mở ứng dụng ở màn hình chính.
+Hình 4.2 là Dashboard trên thiết bị thử nghiệm: thẻ cân bằng calo (nạp 410 kcal, tiêu hao 947 kcal, thâm hụt 537 kcal), Điểm sức khỏe 36/100 kèm lời khuyên đi bộ thêm, và vòng tiến độ bước chân.
+
+![Hình 4.2: Giao diện màn hình Dashboard tổng quan](img/chup-dashboard.png)
+> CHỤP: Tab Dashboard (tab 1) / thẻ cân bằng calo, điểm sức khỏe và vòng tiến độ bước chân / mở ứng dụng ở màn hình chính.
 
 ## 4.2. Quản lý luyện tập và mô hình giải phẫu động học cơ thể
 
@@ -111,19 +117,19 @@ Hệ thống quản lý danh mục bài tập đa dạng, được phân chia th
 - **Tay (*Arms*):** Tập trung vào tay trước (*Biceps*) và tay sau (*Triceps*) như Cuốn tạ tay trước (*Dumbbell Bicep Curl*).
 - **Bụng/Lõi (*Core*):** Tăng cường sự ổn định cột sống và cơ bụng như Plank, Gập bụng (*Crunches*), Leo núi (*Mountain Climbers*).
 
-Ứng dụng cung cấp thanh lọc thiết bị (`ExerciseEquipmentFilter`) với 3 chế độ: *Tất cả*, *Trọng lượng cơ thể (Bodyweight)* dành cho người tập tại nhà không có dụng cụ, và *Tạ đơn (Dumbbell)* dành cho người có trang bị tạ tự do. Bên cạnh đó, người dùng có thể chuyển đổi giao diện hình thể giữa Nam và Nữ để hệ thống điều chỉnh tỷ lệ đồ họa và đề xuất bài tập phù hợp với giới tính.
+Danh mục hiện có 17 bài tập. Ứng dụng cung cấp thanh lọc thiết bị (`ExerciseEquipmentFilter`) với 3 chế độ: *Tất cả* (17), *Tự do (Bodyweight)* (9 bài) dành cho người tập tại nhà không có dụng cụ, và *Tạ đơn (Dumbbell)* (8 bài) dành cho người có trang bị tạ tự do. Bên cạnh đó, người dùng có thể chuyển đổi giao diện hình thể giữa Nam và Nữ để hệ thống điều chỉnh tỷ lệ đồ họa và đề xuất bài tập phù hợp với giới tính.
 
 Bảng 4.2: Cấu trúc thông tin bài tập và nhóm cơ mục tiêu trong hệ thống
 
 | Tên bài tập | Nhóm cơ chính | Phân loại thiết bị | Chế độ mặc định | Mức năng lượng ước tính |
 |---|---|---|---|---|
-| **Hít đất** (*Push-ups*) | Cơ Ngực (*Chest*) | Bodyweight | 3 hiệp × 12 reps | 120 kcal / bài |
-| **Đẩy ngực tạ đơn** | Cơ Ngực (*Chest*) | Tạ đơn (*Dumbbell*) | 3 hiệp × 10 reps (10 kg) | 115 kcal / bài |
+| **Hít đất** (*Push-ups*) | Cơ Ngực (*Chest*) | Bodyweight | 3 hiệp × 15 reps | 120 kcal / bài |
+| **Đẩy ngực tạ đơn** | Cơ Ngực (*Chest*) | Tạ đơn (*Dumbbell*) | 3 hiệp × 12 reps (10 kg) | 115 kcal / bài |
 | **Hít xà đơn** (*Pull-ups*) | Cơ Lưng (*Back*) | Bodyweight | 3 hiệp × 8 reps | 110 kcal / bài |
 | **Kéo tạ lưng xô** | Cơ Lưng (*Back*) | Tạ đơn (*Dumbbell*) | 3 hiệp × 12 reps (10 kg) | 110 kcal / bài |
 | **Squat ôm tạ Goblet** | Đùi & Mông (*Legs*) | Tạ đơn (*Dumbbell*) | 3 hiệp × 12 reps (12 kg) | 130 kcal / bài |
 | **Đẩy vai qua đầu** | Cơ Vai (*Shoulders*) | Tạ đơn (*Dumbbell*) | 3 hiệp × 10 reps (8 kg) | 105 kcal / bài |
-| **Plank siết cơ bụng** | Cơ Bụng (*Core*) | Bodyweight | Đếm giờ 45 giây | 35 kcal / hiệp |
+| **Plank siết cơ bụng** | Cơ Bụng (*Core*) | Bodyweight | Đếm giờ 60 giây | 35 kcal / hiệp |
 
 ### 4.2.2. Mô hình giải phẫu cơ thể tương tác bằng CustomPainter
 
@@ -155,36 +161,46 @@ class MuscleGroupInfo {
 ```
 (Nguồn: lib/widgets/muscle_anatomy_map_widget.dart:9-31)
 
-![Hình 4.2: Giao diện danh mục bài tập và mô hình cơ bắp giải phẫu](img/chup-workout-anatomy.png)
+![Hình 4.3: Giao diện danh mục bài tập và mô hình cơ bắp giải phẫu](img/chup-workout-anatomy.png)
 > CHỤP: Tab Luyện tập (tab 2) / hiển thị mô hình giải phẫu cơ thể với các nhóm cơ được tô màu và danh sách bài tập / chuyển sang tab Workout.
 
 ### 4.2.3. Quản lý buổi tập, bấm giờ nghỉ ngơi và lưu lịch sử hiệp tập vào SQLite
 
 Khi người dùng chọn một bài tập cụ thể, ứng dụng điều hướng sang màn hình thực hiện bài tập trực tiếp (`ActiveWorkoutScreen`). Màn hình hỗ trợ hai phương thức quản lý buổi tập linh hoạt:
-- **Chế độ đếm thời gian (*Timer Mode*):** Dành cho các bài tập giữ tĩnh hoặc cardio cường độ cao (như Plank, Nhảy dây). Đồng hồ đếm ngược được kích hoạt kèm hoạt cảnh hướng dẫn tư thế động học.
+- **Chế độ đếm thời gian (*Timer Mode*):** Dành cho các bài tập giữ tĩnh hoặc cardio cường độ cao (như Plank, Burpees, Mountain Climbers — mặc định 60 giây). Đồng hồ đếm ngược được kích hoạt kèm hoạt cảnh hướng dẫn tư thế động học.
 - **Chế độ số hiệp và lần lặp (*Reps & Sets Mode*):** Dành cho các bài tập kháng lực với tạ. Người dùng có thể tùy chỉnh số hiệp mục tiêu (mặc định 3 hiệp), số lần lặp mục tiêu trên mỗi hiệp (ví dụ 10–12 reps) và mức tạ đang tập (kg).
 
 Sau khi hoàn thành một hiệp tập, hệ thống tự động kích hoạt đồng hồ đếm ngược thời gian nghỉ ngơi (*Rest Timer*, mặc định 60 giây). Bộ đếm này phát cảnh báo rung xúc giác nhẹ qua `AppHaptics` khi hết giờ, đồng thời gửi thông báo trạng thái qua `NotificationService` giúp người tập không bỏ lỡ hiệp tiếp theo ngay cả khi chuyển sang ứng dụng khác.
 
-Ngoài ra, màn hình tích hợp nguyên lý theo dõi tăng tiến tải trọng (*Progressive Overload Tracking*). Ứng dụng tự động truy vấn dữ liệu hiệp tập cũ từ SQLite để so sánh: nếu mức tạ hoặc số reps của hiệp hiện tại vượt qua thành tích cũ, hệ thống sẽ đánh dấu kỷ lục cá nhân mới (*Personal Record - PR*) nhằm tạo động lực rèn luyện. Khi kết thúc toàn bộ buổi tập, phương thức `StorageService.logCompletedWorkout()` lưu trữ toàn bộ dữ liệu (tên bài, thời lượng, calo, số hiệp, mức tạ) vào bảng `workout_logs` của cơ sở dữ liệu SQLite:
+Ngoài ra, màn hình tích hợp nguyên lý theo dõi tăng tiến tải trọng (*Progressive Overload Tracking*). Ứng dụng truy vấn buổi tập gần nhất của cùng bài từ bảng `workout_logs` và hiển thị thẻ gợi ý, ví dụ "Buổi trước: 10.0kg × 10 reps → Hôm nay: +1 rep hoặc +1–2.5kg"; nếu mức tạ hoặc số reps của buổi hiện tại vượt thành tích cũ, hệ thống đánh dấu kỷ lục cá nhân mới (*Personal Record - PR*). Khi kết thúc toàn bộ buổi tập, phương thức `StorageService.logCompletedWorkout()` lưu trữ toàn bộ dữ liệu (tên bài, thời lượng, calo, số hiệp, mức tạ) vào bảng `workout_logs` của cơ sở dữ liệu SQLite:
 
 ```dart
 StorageService.logCompletedWorkout(
   durationMinutes: durationMinutes,
   title: _currentTitle,
   calories: _currentCalories,
-  sets: _isRepsMode ? _targetSets : null,
-  reps: _isRepsMode ? _targetReps : null,
+  sets: _isRepsMode ? loggedSets : null,
+  reps: _isRepsMode ? loggedReps : null,
   weightKg: _hasWeight ? _weightKg : null,
   equipment: _equipment,
 );
 AppHaptics.success();
 AchievementService.checkBadges();
 ```
-(Nguồn: lib/screens/active_workout_screen.dart:404-414)
+(Nguồn: lib/screens/active_workout_screen.dart:420-430)
 
-![Hình 4.3: Giao diện chi tiết bài tập và ghi nhận hiệp tập](img/chup-workout-detail.png)
-> CHỤP: Màn hình chi tiết bài tập Bench Press / hiển thị hướng dẫn động tác và bảng nhập hiệp tập / chọn một bài tập từ danh sách.
+Thời lượng được lưu theo đơn vị phút. Số reps người dùng đếm được ở mỗi hiệp được ghi lại trong danh sách `_repsPerSet`; khi kết thúc, ứng dụng lưu số hiệp đã tập và số reps trung bình mỗi hiệp (ví dụ tập 1 hiệp, đếm 3 reps thì nhật ký ghi 1 × 3 dù mục tiêu là 3 × 10). Nếu người dùng không dùng bộ đếm, ứng dụng ghi theo mục tiêu đã cấu hình. Khi hoàn thành, hộp thoại tổng kết hiển thị calo tiêu hao, thời gian tập, hiệp × reps và mức tạ.
+
+![Hình 4.4: Giao diện chi tiết bài tập và ghi nhận hiệp tập](img/chup-workout-detail.png)
+> CHỤP: Màn hình thực hiện bài tập / hoạt cảnh động học và bộ đếm rep / chọn một bài tập từ danh sách.
+
+![Hình 4.5: Gợi ý tăng tiến tải trọng dựa trên buổi tập trước](img/chup-progressive-overload.png)
+
+![Hình 4.6: Hộp thoại tổng kết khi hoàn thành bài tập](img/chup-workout-complete.png)
+
+**AI Huấn luyện viên cá nhân.** Ở tab Hoạt động, người dùng chọn thời gian rảnh (10–30 phút), mục tiêu (đốt mỡ toàn thân, bụng & core, thân trên, chân & mông, dẻo dai, cardio hoặc tự nhập) và dụng cụ (tự do / tạ đơn). Gemini sinh một giáo án gồm danh sách động tác kèm số hiệp, số reps hoặc thời gian và lời dặn kỹ thuật; người dùng có thể bắt đầu tập ngay hoặc tạo lại.
+
+![Hình 4.7: Giáo án do AI Huấn luyện viên tạo theo mục tiêu Bụng & Core](img/chup-ai-workout-generator.png)
 
 ## 4.3. Theo dõi dinh dưỡng và tích hợp trí tuệ nhân tạo Gemini
 
@@ -198,7 +214,7 @@ Theo dõi dinh dưỡng là phân hệ quan trọng giúp người dùng cân b�
 $$\text{BMR} = 10 \times \text{weight (kg)} + 6,25 \times \text{height (cm)} - 5 \times \text{age} + 5$$
    - Nữ giới:
 $$\text{BMR} = 10 \times \text{weight (kg)} + 6,25 \times \text{height (cm)} - 5 \times \text{age} - 161$$
-2. **Tổng tiêu hao năng lượng hàng ngày (TDEE):** Được tính bằng BMR nhân với hệ số mức độ hoạt động thể chất (*Physical Activity Level - PAL*), dao động từ 1,2 (ít vận động) đến 1,9 (vận động viên cường độ cao):
+2. **Tổng tiêu hao năng lượng hàng ngày (TDEE):** Được tính bằng BMR nhân với hệ số mức độ hoạt động thể chất (*Physical Activity Level - PAL*), người dùng chọn một trong bốn mức khi thiết lập hồ sơ: 1,2 (ít vận động), 1,375 (nhẹ nhàng), 1,55 (vừa phải) và 1,725 (năng động) — tương ứng thang từ 1,2 đến 1,9 (vận động viên cường độ cao):
 $$\text{TDEE} = \text{BMR} \times \text{activityMultiplier}$$
 3. **Mục tiêu năng lượng theo định hướng thể hình:**
    - Giảm mỡ (*Cutting*): thâm hụt khoảng $450\text{ kcal}$ so với TDEE nhằm kích thích đốt mỡ tự nhiên mà không làm mất cơ bắp.
@@ -207,47 +223,47 @@ $$\text{TDEE} = \text{BMR} \times \text{activityMultiplier}$$
    - Duy trì cân bằng (*Balanced*): nạp đúng mức năng lượng TDEE.
 4. **Phân bổ tỷ lệ các chất dinh dưỡng đa lượng (*Macros*):**
    - Đạm (*Protein*): phân bổ từ 1,6 đến 2,2 g trên mỗi kg thể trọng tùy mục tiêu (1g protein = 4 kcal).
-   - Chất béo (*Fat*): phân bổ chiếm 20% đến 25% tổng năng lượng mục tiêu (1g fat = 9 kcal).
+   - Chất béo (*Fat*): phân bổ chiếm 22% đến 25% tổng năng lượng mục tiêu (1g fat = 9 kcal).
    - Tinh bột (*Carbohydrates*): nhận phần năng lượng còn lại chia cho 4 (1g carbs = 4 kcal).
 
 Các mục tiêu tính toán này được biểu diễn trực quan trên màn hình dinh dưỡng (`FoodScreen`) bằng biểu đồ tròn rỗng tâm `MacroDonutChartWidget`, so sánh giữa lượng đạm, đường, béo mục tiêu và lượng thực tế đã nạp trong các bữa ăn.
 
-![Hình 4.4: Giao diện theo dõi dinh dưỡng và các bữa ăn trong ngày](img/chup-nutrition-tab.png)
+![Hình 4.8: Giao diện theo dõi dinh dưỡng và các bữa ăn trong ngày](img/chup-nutrition-tab.png)
 > CHỤP: Tab Dinh dưỡng (tab 3) / hiển thị tổng lượng calo trong ngày và các bữa ăn sáng, trưa, tối / chuyển sang tab Nutrition.
 
 ### 4.3.2. Nhận diện món ăn tự động qua ảnh bằng Google Gemini Vision
 
-Nhằm đơn giản hóa thao tác ghi chép món ăn, ứng dụng tích hợp mô hình thị giác của Google thông qua gói thư viện chính thức `google_generative_ai`. Chức năng nhận diện đĩa thức ăn qua hình ảnh trong `GeminiService.analyzeFoodImage()` hoạt động theo quy trình kỹ thuật chặt chẽ:
+Nhằm đơn giản hóa thao tác ghi chép món ăn, ứng dụng tích hợp mô hình thị giác của Google thông qua gói thư viện chính thức `google_generative_ai`. Người dùng có thể chụp ảnh bằng camera hoặc chọn ảnh từ thư viện (`image_picker`). Chức năng nhận diện đĩa thức ăn qua hình ảnh trong `GeminiService.analyzeFoodImage()` hoạt động theo quy trình:
 
 1. **Xác định định dạng MIME từ mảng byte:** Trước khi gửi ảnh lên máy chủ, ứng dụng không phụ thuộc vào đuôi mở rộng của tệp tin mà đọc trực tiếp các byte đầu (*byte signature*) của mảng `Uint8List` (`0x89 0x50 0x4E 0x47` cho PNG, `RIFF...WEBP` cho WebP, còn lại mặc định là `image/jpeg`). Điều này giúp đối tượng `DataPart` luôn được gán đúng chuẩn MIME type.
 2. **Thiết kế câu chỉ dẫn có cấu trúc (Structured Prompt):** Nhóm thiết lập prompt yêu cầu mô hình đóng vai trò chuyên gia dinh dưỡng, ước lượng kích thước khẩu phần hợp lý và bắt buộc chỉ trả về duy nhất chuỗi đối tượng JSON khớp với lược đồ: `{"name": "...", "calories": int, "protein": int, "carbs": int, "fat": int}`.
-3. **Cơ chế chuyển đổi dự phòng mô hình (*Model Fallback*):** Để phòng ngừa sự cố khi mô hình chính gặp lỗi nghẽn mạng hoặc vượt giới hạn tần suất yêu cầu (*quota limit*), `GeminiService` cài đặt cơ chế dự phòng hai tầng qua hàm `_generateWithFallback()`:
-   - Mô hình chính được chỉ định là `gemini-3.8-flash` với ưu thế về tốc độ phản hồi và độ chính xác nhận diện ngữ cảnh hình ảnh.
-   - Khi khối lệnh gọi mô hình chính ném ra ngoại lệ, hệ thống tự động bắt lỗi và chuyển hướng yêu cầu sang mô hình dự phòng `gemini-3.7-flash` mà không làm gián đoạn trải nghiệm của người dùng.
+3. **Lựa chọn mô hình và giới hạn thời gian:** Toàn bộ chức năng AI dùng một mô hình duy nhất `gemini-2.5-flash`, khai báo bằng hằng số `_modelName` và được gọi qua hàm `_generate()` (bản truyền luồng `_generateStream()` dùng cho chat). Nhóm chọn mô hình này vì khi đo thực tế, nó trả kết quả ổn định trong 3–7 giây với cả ảnh và văn bản, trong khi các mô hình bản 3.x thường quá tải (`503`, `429`) hoặc phản hồi rất chậm. Mỗi lời gọi được giới hạn thời gian (30 giây với phân tích ảnh, 12 giây với tính dinh dưỡng theo định lượng); khi quá thời gian hoặc lỗi mạng, ứng dụng chuyển sang nhập tay hoặc dùng dữ liệu tính sẵn.
 4. **Phân tích và làm sạch JSON:** Kết quả văn bản trả về được hàm `parseFoodJson()` lọc bỏ các ký tự bọc markdown (` ```json `), cắt bỏ khoảng trắng và chuyển đổi thành đối tượng `FoodInfo`.
 
 ```dart
-static Future<GenerateContentResponse> _generateWithFallback(
-  List<Content> contents, {Content? systemInstruction}
-) async {
-  try {
-    return await _createModel(
-      modelName: _modelName, // gemini-3.8-flash
-      systemInstruction: systemInstruction,
-    ).generateContent(contents);
-  } catch (primaryErr) {
-    debugPrint("⚠️ [GeminiService] Model chính lỗi: $primaryErr. Chuyển sang dự phòng $_fallbackModelName...");
-    return await _createModel(
-      modelName: _fallbackModelName, // gemini-3.7-flash
-      systemInstruction: systemInstruction,
-    ).generateContent(contents);
-  }
+static const String _modelName = 'gemini-2.5-flash';
+
+static GenerativeModel _createModel({Content? systemInstruction}) {
+  return GenerativeModel(
+    model: _modelName,
+    apiKey: apiKey,
+    systemInstruction: systemInstruction,
+  );
+}
+
+static Future<GenerateContentResponse> _generate(
+  List<Content> contents, {
+  Content? systemInstruction,
+}) {
+  return _createModel(systemInstruction: systemInstruction).generateContent(contents);
 }
 ```
-(Nguồn: lib/services/gemini_service.dart:76-94)
+(Nguồn: lib/services/gemini_service.dart:44-83, rút gọn)
 
-![Hình 4.5: Chức năng nhận diện món ăn bằng AI Gemini qua Camera](img/chup-ai-food-scanner.png)
-> CHỤP: Màn hình quét món ăn AI / hiển thị khung ngắm camera hoặc ảnh chụp món ăn kèm kết quả ước tính dinh dưỡng từ Gemini / bấm nút AI Food Scan trong tab Dinh dưỡng.
+Kết quả thử nghiệm (18/10/2026, ảnh phở bò 800×600): trên thiết bị, ứng dụng nhận diện "Phở Bò" — 780 kcal, đạm 45 g, tinh bột 60 g, béo 40 g (Hình 4.9); người dùng có thể chỉnh các trị số trước khi lưu. Đo riêng bằng API, `gemini-2.5-flash` nhận diện đúng 6/6 lần với ảnh (3,3–7,5 giây) và trả lời 3/3 yêu cầu văn bản trong 5,6–6,3 giây. Ngoài ảnh, người dùng có thể nhập mô tả bằng văn bản (ví dụ gõ không dấu "2 qua trung op la va 1 banh mi" → "2 trứng ốp la và 1 bánh mì", 680 kcal, đạm 27 g, tinh bột 81 g, béo 29 g), kết quả được lưu vào bảng `food_entries`. Các prompt đều yêu cầu mô hình trả tên món, tên giáo án, hướng dẫn và lời khuyên theo ngôn ngữ giao diện hiện tại (`LocaleService.isVietnamese`), trong khi khóa JSON vẫn giữ tiếng Anh để phân tích ổn định.
+
+![Hình 4.9: Chức năng nhận diện món ăn bằng AI Gemini qua ảnh](img/chup-ai-food-scanner.png)
+> CHỤP: Màn hình xác nhận món ăn / ảnh món ăn kèm kết quả ước tính dinh dưỡng từ Gemini / chọn ảnh trong tab Dinh dưỡng.
 
 ### 4.3.3. Tra cứu thông tin thực phẩm qua mã vạch với Open Food Facts và cơ chế dự phòng ngoại tuyến
 
@@ -265,13 +281,21 @@ Bảng 4.3: So sánh cơ chế nhận diện dinh dưỡng qua AI Gemini Vision 
 | Tiêu chí so sánh | Nhận diện món ăn AI Gemini Vision | Quét mã vạch Open Food Facts |
 |---|---|---|
 | **Đối tượng áp dụng** | Đĩa thức ăn nấu tại nhà, món ăn nhà hàng, đĩa cơm văn phòng, món ăn phức hợp. | Thực phẩm đóng gói thương mại, đồ hộp, bánh kẹo, sữa, thực phẩm bổ sung. |
-| **Giao thức kết nối** | Google Generative AI SDK (gRPC / HTTPS), mô hình `gemini-3.8-flash`. | REST API v2 (HTTP GET) tới máy chủ Open Food Facts, định dạng JSON. |
+| **Giao thức kết nối** | Google Generative AI SDK (HTTPS), mô hình `gemini-2.5-flash`. | REST API v2 (HTTP GET) tới máy chủ Open Food Facts, định dạng JSON. |
 | **Dữ liệu đầu vào** | Mảng byte ảnh chụp từ camera hoặc thư viện (`Uint8List`). | Chuỗi mã vạch số (EAN-13, EAN-8, UPC) qua `mobile_scanner`. |
-| **Thời gian xử lý** | Khoảng 2 đến 4 giây tùy thuộc vào độ phức tạp của ảnh và chất lượng mạng. | Dưới 1 giây đối với các sản phẩm đã có sẵn trong cơ sở dữ liệu quốc tế. |
-| **Cơ chế dự phòng** | Tự động chuyển đổi mô hình sang `gemini-3.7-flash` khi gặp sự cố; hỗ trợ bảng dinh dưỡng tính sẵn ngoại tuyến. | Cho phép người dùng chỉnh sửa thủ công các chỉ số nếu sản phẩm chưa có trên máy chủ hoặc thiếu trường dữ liệu. |
+| **Thời gian xử lý** | Thường 3–7 giây, phụ thuộc chất lượng mạng; giới hạn tối đa 30 giây. | Dưới 1 giây với sản phẩm đã có trong cơ sở dữ liệu quốc tế (ví dụ Nutella `3017620422003`). |
+| **Cơ chế dự phòng** | Nếu lỗi hoặc quá thời gian, ứng dụng mở biểu mẫu nhập tay kèm ảnh; bảng 23 món tính sẵn cho tra cứu văn bản. | Cho phép người dùng chỉnh sửa thủ công các chỉ số nếu sản phẩm chưa có trên máy chủ hoặc thiếu trường dữ liệu. |
 
-![Hình 4.6: Quét mã vạch thực phẩm qua Open Food Facts](img/chup-barcode-scanner.png)
-> CHỤP: Màn hình quét mã vạch BarcodeScannerScreen / camera đang quét mã vạch sản phẩm thực phẩm và hiển thị thông tin dinh dưỡng / bấm nút quét mã vạch trong tab Dinh dưỡng.
+Hình 4.10 là kết quả quét mã vạch Nutella (`3017620422003`) trên thiết bị thử nghiệm: ứng dụng hiển thị ảnh sản phẩm, nhà sản xuất Ferrero, 539 kcal, đạm 6 g, carbs 58 g, béo 31 g trên 100 g, cùng bộ chọn khẩu phần 0.5×–2.0× và bữa ăn.
+
+![Hình 4.10: Quét mã vạch thực phẩm qua Open Food Facts](img/chup-barcode-scanner.png)
+> CHỤP: Bảng quét mã vạch BarcodeScannerSheet / thông tin sản phẩm và dinh dưỡng sau khi quét / bấm nút Quét mã vạch trên Dashboard.
+
+**Chuyên gia dinh dưỡng AI.** Nút "Chuyên gia AI" ở tab Dinh dưỡng mở `AiNutritionistChatDialog`, nơi người dùng hỏi đáp với Gemini (ví dụ "Nên ăn gì sau buổi tập?"). Ngữ cảnh gửi kèm gồm hồ sơ, mục tiêu calo và nhật ký trong ngày, nên câu trả lời được cá nhân hóa (nhắc lượng nước đã uống, cân nặng mục tiêu...). Câu trả lời được truyền luồng và lưu vào lịch sử tư vấn, có tìm kiếm và lọc theo câu hỏi / lời khuyên. Định dạng Markdown trong câu trả lời (chữ đậm `**…**`, chữ nghiêng `*…*`, gạch đầu dòng, tiêu đề `#`) được hàm `chatMarkdownSpan()` (`lib/utils/chat_markdown.dart`) chuyển thành `TextSpan` có định dạng tương ứng, nên người dùng không thấy ký hiệu thô. Ở chế độ Khách, màn hình lịch sử ghi rõ "Lưu trên thiết bị"; khi đã đăng nhập mới hiển thị nhãn đồng bộ Cloud.
+
+![Hình 4.11: Hội thoại với Chuyên gia dinh dưỡng AI](img/chup-ai-chat.png)
+
+![Hình 4.12: Lịch sử tư vấn AI](img/chup-ai-chat-history.png)
 
 ## 4.4. Quản lý hồ sơ cá nhân, đồng bộ dữ liệu và đa ngôn ngữ
 
@@ -279,13 +303,15 @@ Phân hệ quản lý hồ sơ cá nhân (`ProfileScreen`) cung cấp các thi�
 
 ### 4.4.1. Quản lý thông tin thể chất và tính chỉ số BMI
 
-Trong màn hình hồ sơ, người dùng có thể cập nhật các thông số nhân trắc học cơ bản bao gồm chiều cao, cân nặng, độ tuổi, giới tính và cấp độ hoạt động thể chất. Các thông số này được lưu bền vững vào bảng `user_profile` trong cơ sở dữ liệu SQLite và đóng vai trò làm tham số đầu vào cho mọi thuật toán tính toán năng lượng trong ứng dụng.
+Trong màn hình hồ sơ, người dùng có thể cập nhật các thông số nhân trắc học cơ bản bao gồm chiều cao, cân nặng, độ tuổi, giới tính và cấp độ hoạt động thể chất. Các thông số này được lưu dưới dạng chuỗi JSON trong SharedPreferences (khóa `user_profile`) và đóng vai trò làm tham số đầu vào cho mọi thuật toán tính toán năng lượng trong ứng dụng. Với hồ sơ thử nghiệm (nam, 24 tuổi, 175 cm, 70 kg, vận động vừa phải, mục tiêu siết mỡ), ứng dụng tính được BMI 22,9; BMR 1.679 kcal; TDEE 2.602 kcal (hệ số 1,55) và mục tiêu 2.152 kcal/ngày — khớp với công thức ở mục 4.3.1.
 
 Ứng dụng tự động tính toán Chỉ số khối cơ thể (*Body Mass Index - BMI*) theo công thức:
 $$\text{BMI} = \frac{\text{weight (kg)}}{(\text{height (m)})^2}$$
-Dựa trên chỉ số BMI tính được, hệ thống phân loại tình trạng thể chất của người dùng theo khuyến nghị y tế thành 4 cấp độ: *Thiếu cân* ($\text{BMI} < 18,5$), *Bình thường* ($18,5 \le \text{BMI} < 24,9$), *Thừa cân* ($24,9 \le \text{BMI} < 29,9$), và *Béo phì* ($\text{BMI} \ge 30,0$).
+Dựa trên chỉ số BMI tính được, hệ thống phân loại tình trạng thể chất của người dùng theo khuyến nghị y tế thành 4 cấp độ: *Thiếu cân* ($\text{BMI} < 18,5$), *Bình thường* ($18,5 \le \text{BMI} < 24,9$), *Thừa cân* ($24,9 \le \text{BMI} < 29,9$), và *Béo phì* ($\text{BMI} \ge 29,9$).
 
-Ngoài ra, ứng dụng còn tích hợp công thức đo chu vi của Hải quân Hoa Kỳ (*US Navy Circumference Method*) để ước tính tỷ lệ mỡ cơ thể (*Body Fat Percent*) từ số đo vòng cổ, vòng eo, vòng hông và chiều cao. Dữ liệu này được đối chiếu với thang phân loại của Hội đồng Thể dục Hoa Kỳ (*ACE*) để giúp người dùng có cái nhìn chuẩn xác hơn về cấu trúc cơ thể so với chỉ số BMI đơn thuần.
+Ngoài ra, ứng dụng còn tích hợp công thức đo chu vi của Hải quân Hoa Kỳ (*US Navy Circumference Method*) để ước tính tỷ lệ mỡ cơ thể (*Body Fat Percent*) từ số đo vòng cổ, vòng eo, vòng hông và chiều cao. Dữ liệu này được đối chiếu với thang phân loại của Hội đồng Thể dục Hoa Kỳ (*ACE*) để giúp người dùng có cái nhìn chuẩn xác hơn về cấu trúc cơ thể so với chỉ số BMI đơn thuần. Ví dụ trên thiết bị thử nghiệm: vòng eo 82 cm, vòng cổ 38 cm, chiều cao 175 cm cho kết quả 14,5 % (nhóm "Săn chắc thể hình"); bản ghi được lưu vào bảng `body_measurements`.
+
+![Hình 4.13: Màn hình số đo cơ thể và tỷ lệ mỡ theo phương pháp US Navy](img/chup-body-measurements.png)
 
 ### 4.4.2. Hệ thống huy hiệu thành tích (Achievement System)
 
@@ -301,11 +327,13 @@ Bảng 4.4: Danh mục hệ thống huy hiệu thành tích (Achievement Badges)
 | `water_master` | Bậc thầy Hydration (*Hydration Master*) | Nước uống | Uống đủ 8 cốc nước (2.000ml) trong ít nhất 3 ngày. |
 | `water_8_today` | Thủy thần 8 cốc (*Hydration Hero*) | Nước uống | Hoàn thành đủ 8 cốc nước trong một ngày duy nhất. |
 | `walking_king` | Vua đi bộ (*Walking King*) | Bước chân | Chinh phục cột mốc 10.000 bước chân trong một ngày. |
-| `iron_discipline` | Kỷ luật thép (*Iron Discipline*) | Dinh dưỡng | Ghi nhận đầy đủ cả 3 bữa ăn (Sáng, Trưa, Tối) trong một ngày. |
+| `iron_discipline` | Kỷ luật thép (*Iron Discipline*) | Dinh dưỡng | Ghi nhận 3 bữa ăn khác nhau (hoặc ít nhất 3 món) trong một ngày. |
 | `fat_burner` | Siết mỡ siêu đẳng (*Ultimate Deficit*) | Năng lượng | Đạt mức thâm hụt năng lượng trên 500 kcal trong một ngày. |
-| `workout_champion`| Chiến binh phòng tập (*Workout Champion*) | Luyện tập | Hoàn thành ít nhất một buổi tập thể lực có ghi nhận hiệp tập. |
+| `workout_champion`| Chiến binh phòng tập (*Workout Champion*) | Luyện tập | Hoàn thành ít nhất một buổi tập được lưu vào nhật ký. |
 
-Cơ chế đánh giá mở khóa huy hiệu (`AchievementService.checkBadges()`) được kích hoạt tự động sau mỗi hành vi có ý nghĩa của người dùng (như bấm ghi nhận món ăn, hoàn thành bài tập, hoặc cập nhật số bước chân). Khi một huy hiệu mới được mở khóa, dịch vụ lưu định danh huy hiệu vào `SharedPreferences` dưới khóa `unlocked_achievement_badges_v1`, kích hoạt rung phản hồi xúc giác `AppHaptics.success()` và phát sóng sự kiện qua luồng `StreamController<FitnessBadge>.broadcast()`. Màn hình đang mở sẽ lắng nghe luồng này để hiển thị hộp thoại vinh danh `BadgeUnlockDialog`.
+Cơ chế đánh giá mở khóa huy hiệu (`AchievementService.checkBadges()`) được kích hoạt tự động sau mỗi hành vi có ý nghĩa của người dùng (hoàn thành bài tập, ghi món ăn từ thẻ AI trên Dashboard, thêm cốc nước, hoặc mở Dashboard). Khi một huy hiệu mới được mở khóa, dịch vụ lưu định danh huy hiệu vào `SharedPreferences` dưới khóa `unlocked_achievement_badges_v1`, kích hoạt rung phản hồi xúc giác `AppHaptics.success()` và phát sóng sự kiện qua luồng `StreamController<FitnessBadge>.broadcast()`. Màn hình đang mở sẽ lắng nghe luồng này để hiển thị hộp thoại vinh danh `BadgeUnlockDialog`. Riêng huy hiệu `fat_burner` chỉ tính thâm hụt khi trong ngày đã có ít nhất một món ăn được ghi nhận, tránh mở khóa khi lượng nạp bằng 0 chỉ vì chưa nhập dữ liệu.
+
+Bên cạnh 9 huy hiệu trên, thẻ "Huy hiệu thành tích" ở tab Hoạt động (`BadgesAchievementWidget`) hiển thị bốn thử thách luyện tập riêng kèm thanh tiến độ: Chiến binh 10k bước, Bậc thầy Cardio, Chiến binh Bình minh (hoàn thành trước 7:00) và Ngọn lửa bất diệt (chuỗi 7 ngày).
 
 ### 4.4.3. Bật/tắt xác thực sinh trắc học vân tay để bảo vệ quyền riêng tư
 
@@ -313,13 +341,14 @@ Dữ liệu sức khỏe và chỉ số thể chất là những thông tin mang
 
 Phân hệ sử dụng thư viện `local_auth` để kết nối trực tiếp với API `BiometricPrompt` của hệ điều hành Android. Khi người dùng kích hoạt tùy chọn "Khóa ứng dụng bằng sinh trắc học" trong màn hình Cài đặt, trạng thái được lưu vào SharedPreferences. 
 
-Thành phần `BiometricGate` được bọc quanh cây widget chính của ứng dụng và đăng ký lắng nghe sự kiện vòng đời hệ điều hành qua `WidgetsBindingObserver`. Khi người dùng tạm thời chuyển sang ứng dụng khác hoặc khóa màn hình điện thoại rồi quay lại (`AppLifecycleState.resumed`), `BiometricGate` kiểm tra cờ bảo vệ: nếu đang ở trạng thái khóa, ứng dụng lập tức che phủ toàn bộ nội dung nhạy cảm bằng màn hình chờ và kích hoạt hộp thoại quét vân tay của hệ thống Android. Chỉ khi cảm biến vân tay xác thực thành công, cờ `_isLocked` mới được gỡ bỏ để người dùng tiếp tục sử dụng ứng dụng.
+Khi bật công tắc, ứng dụng yêu cầu xác thực một lần để xác nhận rồi lưu cờ `biometric_app_lock_enabled = true` vào SharedPreferences. Thành phần `BiometricGate` được bọc quanh cây widget chính: mỗi lần ứng dụng khởi động với cờ này đang bật, nội dung bị che bởi màn hình chờ và hộp thoại vân tay của hệ thống Android xuất hiện; chỉ khi xác thực thành công, cờ `_isLocked` mới được gỡ bỏ. Trên thiết bị thử nghiệm (cảm biến vân tay dưới màn hình), hộp thoại chỉ xuất hiện một lần mỗi lần mở ứng dụng và mở khóa đúng sau khi xác thực.
 
-![Hình 4.7: Giao diện hồ sơ cá nhân và cài đặt ứng dụng](img/chup-profile-settings.png)
-> CHỤP: Tab Hồ sơ (tab 4) / hiển thị thông tin người dùng, chỉ số BMI, cài đặt mục tiêu, nút bật sinh trắc học và chọn ngôn ngữ / chuyển sang tab Profile.
+Hộp thoại `BiometricPrompt` thuộc SystemUI và được bảo vệ chống chụp màn hình, nên ảnh chụp bằng `adb screencap` chỉ cho ra màn hình đen với biểu tượng cảm biến; vì vậy báo cáo không kèm ảnh hộp thoại này.
 
-![Hình 4.8: Hộp thoại xác thực sinh trắc học Android BiometricPrompt](img/chup-biometric-prompt.png)
-> CHỤP: Hộp thoại vân tay Android BiometricPrompt xuất hiện khi mở ứng dụng / hiển thị giao diện quét vân tay của hệ thống / kích hoạt bảo vệ sinh trắc học trong Cài đặt rồi mở lại app.
+![Hình 4.14: Giao diện hồ sơ cá nhân và cài đặt ứng dụng](img/chup-profile-settings.png)
+> CHỤP: Tab Hồ sơ (tab 4) / thông tin người dùng, chọn ngôn ngữ, huy hiệu, đăng nhập Google và Health Connect / chuyển sang tab Profile.
+
+![Hình 4.15: Chỉ số trao đổi chất và khóa bảo mật sinh trắc học trong tab Hồ sơ](img/chup-profile-bmi-security.png)
 
 ### 4.4.4. Hỗ trợ đa ngôn ngữ (Tiếng Việt và Tiếng Anh)
 
@@ -346,4 +375,6 @@ static String tr(String key, {Map<String, String>? args}) {
 ```
 (Nguồn: lib/services/locale_service.dart:63-74)
 
-Nhờ kiến trúc này, toàn bộ văn bản từ tên món ăn, danh mục bài tập, hướng dẫn động tác cho tới các thông báo nhắc nhở đều được bản địa hóa chuẩn xác, mang lại trải nghiệm sử dụng thuận tiện và thân thiện cho người dùng trong nước cũng như quốc tế.
+Nhờ kiến trúc này, phần lớn văn bản giao diện — tên tab, danh mục bài tập, nhãn chỉ số, thông báo — được chuyển đổi ngay khi đổi ngôn ngữ mà không cần khởi động lại ứng dụng (Hình 4.16). Nội dung do Gemini sinh ra (tên món, giáo án, lời khuyên, bản tin ngày) cũng theo ngôn ngữ đang chọn vì prompt truyền kèm ngôn ngữ hiện tại.
+
+![Hình 4.16: Tab Hồ sơ ở chế độ tiếng Anh](img/chup-profile-english.png)

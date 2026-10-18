@@ -20,10 +20,11 @@ Bảng A.1: Danh mục quyền hệ thống khai báo trong AndroidManifest.xml
 | `android.permission.INTERNET` | Thông thường (Normal) | API 1+ | Kết nối mạng truy vấn mô hình Gemini AI, cơ sở dữ liệu Open Food Facts và Firebase |
 | `android.permission.CAMERA` | Nguy hiểm (Runtime) | API 1+ | Chụp ảnh món ăn để AI nhận diện và quét mã vạch bao bì thực phẩm qua `mobile_scanner` |
 | `android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | Thông thường (Normal) | API 23+ | Mở màn hình hệ thống yêu cầu người dùng loại trừ ứng dụng khỏi danh sách tối ưu hóa pin Doze Mode |
-| `android.permission.USE_BIOMETRIC` | Thông thường (Normal) | API 28+ | Sử dụng cảm biến vân tay hoặc khuôn mặt qua `BiometricPrompt` để bảo vệ ứng dụng |
+| `android.permission.USE_BIOMETRIC` | Thông thường (Normal) | API 28+ | Sử dụng cảm biến vân tay hoặc khuôn mặt qua `BiometricPrompt`; quyền do plugin `local_auth` khai báo và được gộp vào Manifest khi build |
 | `android.permission.health.READ_STEPS` | Quyền Health Connect | API 34+ / App | Đọc dữ liệu bước chân lưu trữ trong kho dữ liệu Google Health Connect |
 | `android.permission.health.READ_HEART_RATE` | Quyền Health Connect | API 34+ / App | Đọc dữ liệu nhịp tim từ Google Health Connect để phân tích thể trạng |
 | `android.permission.health.READ_TOTAL_CALORIES_BURNED` | Quyền Health Connect | API 34+ / App | Đọc tổng lượng calo tiêu hao tổng hợp từ Google Health Connect |
+| `android.permission.health.READ_ACTIVE_CALORIES_BURNED` | Quyền Health Connect | API 34+ / App | Đọc calo tiêu hao do hoạt động (`ACTIVE_ENERGY_BURNED`) hiển thị trên thẻ Health Connect |
 | `android.permission.health.READ_SLEEP` | Quyền Health Connect | API 34+ / App | Đọc dữ liệu các phiên giấc ngủ từ Google Health Connect |
 
 ---
@@ -57,23 +58,26 @@ Bảng B.2: Danh mục khóa trạng thái chia sẻ qua FlutterSharedPreference
 
 ## Phụ lục C: Danh mục lệnh ADB kiểm tra ứng dụng trên thiết bị
 
-Công cụ dòng lệnh ADB (*Android Debug Bridge*) được sử dụng trong quá trình kiểm thử để kiểm tra trạng thái hoạt động của tiến trình nền, giả lập các sự kiện hệ thống, kiểm soát quyền và thu thập thông tin gỡ lỗi trên thiết bị thật (`com.nhh031.fitness_tracker`).
+Công cụ dòng lệnh ADB (*Android Debug Bridge*) được sử dụng trong quá trình kiểm thử để kiểm tra trạng thái hoạt động của tiến trình nền, lịch báo thức, quyền đã cấp và thu thập thông tin gỡ lỗi trên thiết bị thật (`com.nhh031.fitness_tracker`, Xiaomi 25053RT47C, Android 16). Trên Windows, dùng `findstr` thay cho `grep`.
 
 Bảng C.1: Danh mục lệnh ADB kiểm thử và giám sát ứng dụng trên thiết bị
 
 | Nhóm tác vụ | Lệnh ADB thực thi | Mục đích và ý nghĩa kỹ thuật | Kết quả quan sát mong đợi |
 |---|---|---|---|
-| **Dịch vụ nền** | `adb shell dumpsys activity services com.nhh031.fitness_tracker` | Kiểm tra trạng thái của `StepCounterService` | Xuất hiện `isForeground=true`, `foregroundServiceType=health` và thông tin Notification ID |
+| **Dịch vụ nền** | `adb shell dumpsys activity services com.nhh031.fitness_tracker` | Kiểm tra trạng thái của `StepCounterService` | Xuất hiện `isForeground=true foregroundId=1 types=0x00000100` (kiểu `health`) và kênh `StepCounterChannel` |
 | **Dịch vụ nền** | `adb shell ps -A \| grep com.nhh031.fitness_tracker` | Kiểm tra tiến trình ứng dụng đang chạy trong hệ điều hành | Hiển thị PID của tiến trình chính tương ứng với gói ứng dụng |
 | **Tiết kiệm pin** | `adb shell dumpsys deviceidle whitelist` | Kiểm tra xem ứng dụng đã nằm trong danh sách trắng Doze Mode hay chưa | Danh sách hiển thị tên gói `com.nhh031.fitness_tracker` nếu người dùng đã cấp quyền |
-| **Tiết kiệm pin** | `adb shell cmd deviceidle step deep` | Ép thiết bị vào trạng thái Doze Mode sâu để kiểm tra tính bền bỉ của service | `StepCounterService` vẫn tiếp tục đếm bước khi CPU chuyển sang trạng thái ngủ |
-| **Broadcast** | `adb shell am broadcast -a android.intent.action.BOOT_COMPLETED -p com.nhh031.fitness_tracker` | Giả lập sự kiện hoàn tất khởi động máy để kiểm tra `BootReceiver` | `BootReceiver` tiếp nhận Intent và gọi `startForegroundService` kích hoạt lại bộ đếm bước |
-| **Broadcast** | `adb shell am broadcast -a android.intent.action.MY_PACKAGE_REPLACED -p com.nhh031.fitness_tracker` | Giả lập sự kiện cập nhật ứng dụng thành công | Dịch vụ đếm bước tự động khởi chạy lại mà không cần người dùng mở app |
-| **App Widget** | `adb shell dumpsys appwidget com.nhh031.fitness_tracker` | Kiểm tra thông tin các thực thể App Widget đang được gắn trên màn hình chính | Xuất hiện thông tin kích thước và component `FitnessAppWidgetProvider` |
+| **Tiết kiệm pin** | `adb shell dumpsys battery unplug` rồi `adb shell dumpsys deviceidle step deep` (lặp lại) | Giả lập rút sạc và đẩy thiết bị qua từng giai đoạn Doze để kiểm tra dịch vụ nền | Trạng thái chuyển dần sang `IDLE` khi màn hình tắt; dùng `adb shell dumpsys battery reset` để khôi phục |
+| **Báo thức** | `adb shell dumpsys alarm \| findstr fitness_tracker` | Kiểm tra các lịch nhắc uống nước đã đăng ký với `AlarmManager` | Các báo thức `RTC_WAKEUP`, `window=0` của `ScheduledNotificationReceiver` |
+| **Broadcast** | `adb reboot`, sau đó `adb shell dumpsys activity services com.nhh031.fitness_tracker` | Kiểm tra `BootReceiver` bằng một lần khởi động lại thật (lệnh `am broadcast -a ...BOOT_COMPLETED` bị từ chối với `SecurityException` vì là broadcast được bảo vệ) | Dịch vụ chạy lại ở tiền cảnh nếu người dùng đã bật *Tự khởi chạy* (Autostart) trên HyperOS |
+| **Broadcast** | `adb install -r app-debug.apk` | Cập nhật ứng dụng để phát `MY_PACKAGE_REPLACED` thật | Dịch vụ tự khởi chạy lại khi Autostart được bật; nếu chưa bật, dịch vụ chạy lại khi người dùng mở ứng dụng |
+| **App Widget** | `adb shell dumpsys appwidget` | Kiểm tra provider và các widget đang được gắn trên màn hình chính | Provider `FitnessAppWidgetProvider` (`updatePeriodMillis=1800000`) và widget do `com.miui.home` lưu trữ |
 | **Phân quyền** | `adb shell pm grant com.nhh031.fitness_tracker android.permission.ACTIVITY_RECOGNITION` | Cấp quyền nhận diện vận động qua dòng lệnh | Quyền chuyển sang trạng thái `granted` mà không cần hiển thị hộp thoại giao diện |
 | **Phân quyền** | `adb shell pm grant com.nhh031.fitness_tracker android.permission.POST_NOTIFICATIONS` | Cấp quyền hiển thị thông báo trên Android 13+ | Thông báo tiến độ bước chân xuất hiện ngay trên thanh trạng thái |
-| **Phân quyền** | `adb shell pm revoke com.nhh031.fitness_tracker android.permission.ACTIVITY_RECOGNITION` | Thu hồi quyền nhận diện vận động để kiểm tra cơ chế xử lý lỗi | Giao diện Flutter hiển thị thông báo hướng dẫn người dùng cấp lại quyền |
+| **Phân quyền** | `adb shell pm revoke com.nhh031.fitness_tracker android.permission.ACTIVITY_RECOGNITION` | Thu hồi quyền nhận diện vận động để kiểm tra luồng xin quyền | Hệ thống dừng tiến trình ứng dụng; lần mở sau, ứng dụng hiện lại hộp thoại xin quyền và chỉ khởi chạy dịch vụ khi được chấp thuận |
+| **Phân quyền** | `adb shell dumpsys package com.nhh031.fitness_tracker \| findstr granted` | Liệt kê trạng thái các quyền runtime và quyền cài đặt | `ACTIVITY_RECOGNITION`, `POST_NOTIFICATIONS`, `FOREGROUND_SERVICE_HEALTH` ở trạng thái `granted=true` |
 | **Dữ liệu chia sẻ** | `adb shell run-as com.nhh031.fitness_tracker cat /data/data/com.nhh031.fitness_tracker/shared_prefs/FlutterSharedPreferences.xml` | Đọc nội dung tệp SharedPreferences native dùng chung | Hiển thị các trường `flutter.today_steps`, `flutter.water_cups_today` với giá trị đồng bộ |
-| **Nhật ký Logcat** | `adb logcat -s StepCounterService:V FitnessAppWidget:V flutter:V MainActivity:V` | Lọc thông tin nhật ký hệ thống của các thành phần native và Flutter | Hiển thị chi tiết từng sự kiện cảm biến phần cứng và lệnh cập nhật widget |
-| **Kiểm tra crash** | `adb logcat *:E \| grep -E "FATAL\|AndroidRuntime"` | Bắt nhanh các ngoại lệ nghiêm trọng gây dừng ứng dụng đột ngột | Không có lỗi ngoại lệ `FATAL EXCEPTION` xuất phát từ gói ứng dụng |
+| **Nhật ký ứng dụng** | `flutter logs -d <serial>` | Theo dõi log `debugPrint` của tầng Dart (HyperOS lọc bớt log ứng dụng trong `adb logcat`) | Log chuyển model Gemini, lỗi Health Connect, cảnh báo tràn bố cục ở bản debug |
+| **Kiểm tra crash** | `adb logcat -b crash` | Đọc vùng đệm nhật ký sự cố của hệ thống | Không có `FATAL EXCEPTION` xuất phát từ gói ứng dụng |
+| **Widget lỗi** | `adb logcat \| findstr InflateException` | Tìm lỗi dựng `RemoteViews` khi Launcher báo "Không thể tải tiện ích" | Không có dòng `Class not allowed to be inflated` của `fitness_app_widget` |
 | **Chụp ảnh bằng chứng** | `adb exec-out screencap -p > docs/report/img/chup-adb-dumpsys.png` | Xuất trực tiếp ảnh chụp màn hình thiết bị vào thư mục báo cáo | Tệp ảnh PNG chứa kết quả kiểm thử được tạo lập thành công |

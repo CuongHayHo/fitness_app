@@ -13,6 +13,7 @@ Kính chúc quý thầy cô luôn mạnh khỏe và thành công trong sự nghi
 Hà Nội, năm 2026
 
 Nhóm sinh viên thực hiện (Nhóm L02):
-- Trần Mạnh Cường
-- Trần Hoàng Dũng
-- Đỗ Ngọc Huy
+- Nguyễn Huy Hoàng - CT070221
+- Trần Mạnh Cường - CT070109
+- Trần Hoàng Dũng - CT070115
+- Đỗ Ngọc Huy - CT070132

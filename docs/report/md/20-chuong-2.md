@@ -7,9 +7,9 @@ Trong bối cảnh thiết bị di động ngày càng phổ biến, nhu cầu t
 ### 2.1.1. Yêu cầu chức năng
 
 Hệ thống cung cấp bốn nhóm chức năng cốt lõi phục vụ rèn luyện thể chất:
-- *Theo dõi vận động và bước chân*: Thu thập bước chân qua cảm biến phần cứng `TYPE_STEP_COUNTER` bằng dịch vụ tiền cảnh (*Foreground Service*), lọc nhiễu dao động (tối đa 5 bước/giây), tính quãng đường và calo tiêu hao, tự động chốt sổ lúc nửa đêm và cập nhật tiện ích màn hình chính (*App Widget*).
+- *Theo dõi vận động và bước chân*: Thu thập bước chân qua cảm biến phần cứng `TYPE_STEP_COUNTER` bằng dịch vụ tiền cảnh (*Foreground Service*), lọc nhiễu dao động ở tầng Dart (tối đa 5 bước/giây khi ứng dụng đang mở), tính quãng đường và calo tiêu hao, tự động đặt lại mốc khi nhận dữ liệu cảm biến đầu tiên của ngày mới và cập nhật tiện ích màn hình chính (*App Widget*).
 - *Quản lý chế độ tập luyện*: Cung cấp danh mục bài tập gym và thể trọng, mô phỏng giải phẫu động học 2D trên Canvas giúp kiểm tra tư thế, điều phối phiên tập với đồng hồ bấm giờ, lưu hiệp/lần/tạ và đếm ngược thời gian nghỉ.
-- *Nhật ký dinh dưỡng và trợ lý AI*: Ghi nhận khẩu phần ăn, tính năng lượng và ba chất đa lượng (*Protein / Carbohydrate / Fat*), quét mã vạch qua Open Food Facts, theo dõi nước uống và hỏi đáp với trợ lý Gemini AI (`gemini-3.8-flash` kết hợp dự phòng `gemini-3.7-flash`).
+- *Nhật ký dinh dưỡng và trợ lý AI*: Ghi nhận khẩu phần ăn, tính năng lượng và ba chất đa lượng (*Protein / Carbohydrate / Fat*), quét mã vạch qua Open Food Facts, theo dõi nước uống và hỏi đáp với trợ lý Gemini AI (`gemini-2.5-flash`).
 - *Hồ sơ cá nhân và bảo mật sinh trắc học*: Tính chỉ số BMI, BMR và TDEE; lưu số đo nhân trắc học, ảnh tiến trình, bảo mật qua vân tay (*BiometricPrompt*) và hỗ trợ chuyển đổi giữa chế độ khách (*Guest Mode*) và tài khoản Google.
 
 Bảng 2.1: Danh mục yêu cầu chức năng của hệ thống
@@ -24,9 +24,9 @@ Bảng 2.1: Danh mục yêu cầu chức năng của hệ thống
 | F-06 | Nhật ký dinh dưỡng | Ghi nhận món ăn, tính calo và tỷ lệ đa lượng | Người dùng |
 | F-07 | Quét mã vạch thực phẩm | Tra cứu thành phần qua Open Food Facts API | Người dùng |
 | F-08 | Theo dõi nước uống | Ghi nhận số cốc nước, thể tích và sóng nước | Người dùng |
-| F-09 | Trợ lý AI tư vấn | Hỏi đáp dinh dưỡng và gợi ý bài tập qua Gemini AI | Người dùng, Gemini |
+| F-09 | Trợ lý AI tư vấn | Hỏi đáp dinh dưỡng, nhận diện món ăn và tạo bài tập qua Gemini AI | Người dùng, Gemini |
 | F-10 | Tính trao đổi chất | Tính BMI, BMR (Mifflin-St Jeor), TDEE và calo | Người dùng |
-| F-11 | Khóa vân tay bảo mật | Kích hoạt `BiometricPrompt` khi ứng dụng phục hồi | Người dùng |
+| F-11 | Khóa vân tay bảo mật | Kích hoạt `BiometricPrompt` khi mở ứng dụng | Người dùng |
 | F-12 | Đồng bộ đám mây | Hợp nhất dữ liệu với Cloud Firestore khi có mạng | Người dùng, Firestore |
 
 ### 2.1.2. Yêu cầu phi chức năng
@@ -58,7 +58,7 @@ Hệ thống mô hình hóa tương tác qua bốn tác nhân (*Actors*): Ngư�
 ![Hình 2.1: Sơ đồ Use Case tổng thể của hệ thống](img/so-do-use-case.png)
 
 Hệ thống ca sử dụng trên Hình 2.1 gồm bốn phân hệ chính:
-- *Theo dõi vận động*: "Đếm bước chân nền" do Cảm biến nền kích hoạt tự động, kích hoạt tiếp "Cập nhật widget màn hình chính" để hiển thị ra ngoài màn hình khóa. Người dùng tương tác qua "Xem thống kê vận động ngày và tuần".
+- *Theo dõi vận động*: "Đếm bước chân nền" do Cảm biến nền kích hoạt tự động, kích hoạt tiếp "Cập nhật widget màn hình chính" để hiển thị số liệu trên màn hình chính (*Home Screen*). Người dùng tương tác qua "Xem thống kê vận động ngày và tuần".
 - *Quản lý tập luyện*: Người dùng thực hiện "Tra cứu danh mục bài tập", "Xem mô phỏng động học giải phẫu", "Thực hiện phiên tập và đếm giờ nghỉ", và lưu kết quả qua "Ghi nhận nhật ký bài tập".
 - *Dinh dưỡng & Trợ lý AI*: Gồm "Ghi nhận khẩu phần dinh dưỡng" (kết hợp "Quét mã vạch thực phẩm OpenFoodFacts"), "Theo dõi lượng nước uống" và "Tư vấn dinh dưỡng với Gemini AI".
 - *Hồ sơ & Bảo mật*: Người dùng thực hiện "Cập nhật chỉ số nhân trắc học", "Bật/tắt khóa vân tay", "Chuyển đổi ngôn ngữ", "Đăng nhập Google / Chế độ khách" và "Đồng bộ dữ liệu hai chiều" với Cloud Firestore.
@@ -75,9 +75,9 @@ Chi tiết sáu tầng kiến trúc:
 1. **Lớp Presentation (Giao diện Flutter)**: Điều phối bốn màn hình chính (`DashboardScreen`, `WorkoutScreen`, `FoodScreen`, `ProfileScreen`) qua `IndexedStack` để bảo toàn trạng thái cuộn và dữ liệu khi đổi tab. Tích hợp thanh điều hướng nổi kính mờ (*BackdropFilter* blur 24px) trên nền Scaffold mở rộng đáy (`extendBody: true`). Lớp này vẽ động học 18 khớp xương bằng `CustomPainter`, hiển thị biểu đồ qua `fl_chart`, sóng nước `HydrationWaveWidget`, và được bảo vệ bởi `AuthGate` cùng `BiometricGate`.
 2. **Lớp State Management (Quản lý trạng thái Scoped Notifier)**: Sử dụng các `ValueNotifier<int>` độc lập trong `StorageService` (`stepUpdateNotifier`, `waterUpdateNotifier`, `foodUpdateNotifier`, `workoutUpdateNotifier`, `profileUpdateNotifier`, `chatUpdateNotifier`, `dataUpdateNotifier`). Khi dữ liệu thay đổi, notifier tăng giá trị, kích hoạt vẽ lại cục bộ chỉ trên những widget đang lắng nghe, tránh dựng lại toàn bộ cây giao diện.
 3. **Lớp Data Services & Repositories (Nghiệp vụ và Kho dữ liệu)**: `StorageService` đóng vai trò Facade trung tâm. Các Repository theo miền nghiệp vụ (`StepRepository`, `WaterRepository`, `WorkoutRepository`, `NutritionRepository`, `ChatRepository`, `BodyMeasurementRepository`, `AuthRepository`) quản lý bộ nhớ đệm RAM (`Map<String, List<T>>` theo ngày) và xử lý tính toán (calo, lọc rung nhiễu bước chân).
-4. **Lớp Local Storage (Lưu trữ cục bộ Local-First)**: SQLite (`sqflite`) quản lý CSDL `fitness_tracker.db` với 7 bảng và chỉ mục B-tree (tự chuyển sang thư viện SQLite trên bộ nhớ RAM `sqflite_common_ffi` khi chạy test CI). `SharedPreferences` lưu trữ cấu hình người dùng, cờ sinh trắc học và chia sẻ dữ liệu bước chân hai chiều với native Android.
+4. **Lớp Local Storage (Lưu trữ cục bộ Local-First)**: Dữ liệu được lưu trên thiết bị theo hai cơ chế. *SQLite* (`sqflite`) quản lý CSDL `fitness_tracker.db` với 7 bảng và chỉ mục B-tree (tự chuyển sang SQLite trên bộ nhớ RAM `sqflite_common_ffi` khi chạy test CI); nhật ký món ăn, nhật ký bài tập, số đo cơ thể, món ăn ưa thích và ảnh tiến trình được ghi vào SQLite. *SharedPreferences* lưu hồ sơ người dùng (chuỗi JSON), cấu hình, cờ sinh trắc học, dữ liệu bước chân dùng chung với native Android, cùng lịch sử nước uống và lịch sử chat AI dạng danh sách JSON, giúp App Widget và dịch vụ nền đọc trực tiếp mà không cần mở CSDL.
 5. **Lớp dịch vụ nền Android Native (*Native Android Background Layer*)**: `StepCounterService` là dịch vụ tiền cảnh Kotlin đăng ký cảm biến `Sensor.TYPE_STEP_COUNTER` gom cụm 10 giây. `BootReceiver` tự chạy lại dịch vụ sau khi máy khởi động lại. `FitnessAppWidgetProvider` cập nhật giao diện widget màn hình chính qua `RemoteViews`. Giao tiếp giữa Flutter và Android được thực hiện qua `MethodChannel` và `EventChannel`.
-6. **Lớp Cloud Services & External APIs**: `Firebase Authentication` xác thực Google Sign-In; `Cloud Firestore` lưu trữ NoSQL tại `/users/{uid}/{sub_collections}` với cơ chế chia mẻ ghi `WriteBatch` ($\le 400$ thao tác); `Google Generative AI` cung cấp Gemini 3.8 Flash và 3.7 Flash; `Open Food Facts API` hỗ trợ tra cứu mã vạch.
+6. **Lớp Cloud Services & External APIs**: `Firebase Authentication` xác thực Google Sign-In; `Cloud Firestore` lưu trữ NoSQL tại `/users/{uid}/{sub_collections}` với cơ chế chia mẻ ghi `WriteBatch` ($\le 400$ thao tác); `Google Generative AI` cung cấp mô hình Gemini 2.5 Flash; `Open Food Facts API` hỗ trợ tra cứu mã vạch.
 
 ---
 
@@ -137,10 +137,10 @@ Hệ thống sử dụng `sqflite` để quản lý CSDL quan hệ `fitness_trac
 ![Hình 2.3: Sơ đồ quan hệ thực thể cơ sở dữ liệu SQLite](img/erd-sqlite.png)
 
 Bảy bảng dữ liệu phản ánh các hoạt động vận động và dinh dưỡng của người dùng:
-- `workout_logs`: Lưu lịch sử bài tập, thời lượng (giây), calo, set, rep, tạ, dụng cụ, thời điểm và ngày tập.
+- `workout_logs`: Lưu lịch sử bài tập, thời lượng (phút), calo, set, rep, tạ, dụng cụ, thời điểm và ngày tập.
 - `food_entries`: Lưu các món ăn đã nạp, calo, đạm, đường bột, chất béo, loại bữa ăn, ảnh và ngày ghi nhận.
-- `daily_water_history`: Lưu tổng lượng nước uống trong ngày theo số cốc và thể tích (ml), khóa chính là chuỗi `date`.
-- `chat_messages`: Lưu lịch sử hội thoại AI với vai trò người gửi (`user`/`model`), nội dung tin nhắn và thời điểm gửi.
+- `daily_water_history`: Bảng lưu tổng lượng nước theo ngày (số cốc, thể tích ml), khóa chính là chuỗi `date`; được `WaterRepository` dùng khi hợp nhất dữ liệu nước uống từ Firestore.
+- `chat_messages`: Bảng lưu tin nhắn hội thoại AI (`user`/`model`), được `ChatRepository` sử dụng; luồng giao diện lưu lịch sử chat qua SharedPreferences (mục 2.5.2).
 - `favorite_foods`: Lưu danh mục món ăn ưa thích phục vụ tìm kiếm và nhập nhanh khẩu phần ăn mẫu.
 - `body_measurements`: Theo dõi số đo thể trạng theo ngày gồm cân nặng, các vòng cơ thể và tỷ lệ mỡ ước tính.
 - `progress_photos`: Lưu nhật ký ảnh chụp tiến trình vóc dáng kèm tư thế, cân nặng và ghi chú cá nhân.
@@ -157,6 +157,8 @@ Bảng 2.4: Đặc tả cấu trúc các bảng trong cơ sở dữ liệu SQLit
 | `body_measurements` | `id` (TEXT, UUID) | `date`, `weight`, `neck_cm`, `chest_cm`, `waist_cm`, `hips_cm` | `idx_body_meas_date` |
 | `progress_photos` | `id` (TEXT, UUID) | `date`, `image_path`, `pose`, `weight`, `notes` | `idx_prog_photo_date` |
 
+Trong luồng sử dụng hằng ngày, `food_entries`, `workout_logs`, `body_measurements`, `favorite_foods` và `progress_photos` là nơi lưu chính; kiểm tra trên thiết bị thật cho thấy các bản ghi món ăn, buổi tập và số đo cơ thể được ghi đúng vào các bảng này.
+
 Để bảo đảm tính liên tục khi nâng cấp từ bản dùng SharedPreferences sang SQLite, lớp `AppDatabase` triển khai phương thức `_migrateFromSharedPreferences()`. Quá trình kiểm tra cờ `sqlite_migrated_v1` và gom dữ liệu vào `db.batch()` để chèn đồng loạt trong một giao dịch duy nhất (*transaction*).
 
 ### 2.5.2. Lưu trữ cấu hình và dữ liệu đồng bộ qua SharedPreferences
@@ -168,28 +170,34 @@ Bảng 2.5: Danh mục các khóa SharedPreferences dùng chung
 | Tên khóa (Key) | Kiểu dữ liệu | Phạm vi sử dụng | Mục đích kỹ thuật |
 |---|---|---|---|
 | `flutter.today_steps` | Long (Int64) | Kotlin $\leftrightarrow$ Flutter | Lưu tổng số bước chân trong ngày hôm nay |
-| `flutter.step_baseline_YYYY-MM-DD` | Long (Int64) | Kotlin $\leftrightarrow$ Flutter | Mốc số bước phần cứng tại thời điểm bắt đầu ngày |
+| `flutter.step_baseline_hardware`, `flutter.step_baseline_date` | Long / String | Kotlin $\leftrightarrow$ Flutter | Mốc số bước phần cứng và ngày lấy mốc |
 | `flutter.step_reboot_offset` | Long (Int64) | Kotlin $\leftrightarrow$ Flutter | Số bước bù trừ tích lũy khi thiết bị khởi động lại |
 | `flutter.water_cups_today` | Long (Int64) | Flutter $\rightarrow$ App Widget | Số cốc nước hôm nay, hiển thị lên App Widget |
-| `flutter.isGuestMode` | Boolean | Flutter (`AuthGate`) | Đánh dấu người dùng đang sử dụng ở chế độ khách |
-| `flutter.biometric_enabled` | Boolean | Flutter (`BiometricGate`)| Cờ bật/tắt tính năng khóa bảo mật vân tay |
+| `flutter.is_guest_mode` | Boolean | Flutter (`AuthGate`) | Đánh dấu người dùng đang sử dụng ở chế độ khách |
+| `flutter.biometric_app_lock_enabled` | Boolean | Flutter (`BiometricGate`)| Cờ bật/tắt tính năng khóa bảo mật vân tay |
+| `flutter.daily_water_history` | StringList (JSON) | Flutter (`StorageService`) | Lịch sử nước uống theo ngày (tối đa 60 ngày) |
+| `flutter.ai_chat_history` | StringList (JSON) | Flutter (`StorageService`) | Lịch sử hội thoại với trợ lý Gemini |
+| `flutter.app_language` | String | Flutter (`LocaleService`) | Ngôn ngữ hiển thị (`vi` / `en`) |
 | `flutter.user_profile` | String (JSON) | Flutter (`StorageService`)| Chuỗi JSON chứa thông tin thể trạng và mục tiêu calo |
 | `flutter.sqlite_migrated_v1` | Boolean | Flutter (`AppDatabase`) | Cờ xác nhận đã hoàn tất di trú dữ liệu sang SQLite |
 
 Do cảm biến bước chân phát sinh sự kiện liên tục, lớp `StepRepository` áp dụng cơ chế trì hoãn ghi đĩa (*debounced I/O*): chỉ ghi xuống tệp XML khi số bước thay đổi từ 3 bước trở lên hoặc sau tối thiểu 2 giây:
 
 ```dart
-// Thuật toán kiểm soát tần suất ghi đĩa debounced I/O cho bộ đếm bước
-final stepsDiff = (steps - _lastSavedSteps).abs();
-final elapsed = DateTime.now().difference(_lastSaveTime);
+// Debounced disk saving: Giảm thiểu ghi I/O liên tục
+final bool shouldPersist = _lastPersistedSteps == null ||
+    (calculatedSteps - _lastPersistedSteps!).abs() >= 3 ||
+    _lastPersistTime == null ||
+    now.difference(_lastPersistTime!).inSeconds >= 2;
 
-if (stepsDiff >= 3 || elapsed >= const Duration(seconds: 2)) {
-  _lastSavedSteps = steps;
-  _lastSaveTime = DateTime.now();
-  await _prefs.setInt(keyTodaySteps, steps);
+if (shouldPersist) {
+  _lastPersistedSteps = calculatedSteps;
+  _lastPersistTime = now;
+  await prefs.setInt(_keyTodaySteps, calculatedSteps);
+  await saveDailySteps(todayStr, calculatedSteps);
 }
 ```
-(Nguồn: `lib/repositories/step_repository.dart:121-132`)
+(Nguồn: `lib/repositories/step_repository.dart:120-131`)
 
 ### 2.5.3. Mô hình lưu trữ đám mây Cloud Firestore
 
@@ -200,11 +208,12 @@ Dịch vụ NoSQL Cloud Firestore sao lưu dự phòng và hỗ trợ chuyển �
 - `/users/{uid}/water_logs`: Bản sao nhật ký nước uống theo ngày.
 - `/users/{uid}/body_measurements`: Bản sao số đo nhân trắc học.
 - `/users/{uid}/favorite_foods`: Danh mục món ăn ưa thích.
-- `/users/{uid}/chat_history`: Lịch sử hội thoại với trợ lý AI.
+- `/users/{uid}/ai_chat_history`: Lịch sử hội thoại với trợ lý AI.
+- `/users/{uid}/daily_summaries`, `/users/{uid}/settings`: Tổng hợp theo ngày và cấu hình người dùng.
 
-Đồng bộ được thực thi qua phương thức `FirestoreService.syncOnLogin()` khi người dùng đăng nhập Google:
-1. Đọc song song các bản ghi trong SQLite cục bộ và tài liệu tương ứng trên Firestore.
-2. Thuật toán hợp nhất hai chiều (*Two-Way Merge*) đối soát theo `id` và `date`. Bản ghi mới từ máy khách được đẩy lên Firestore, và dữ liệu trên đám mây được cập nhật vào SQLite.
+Đồng bộ được thực thi qua phương thức `FirestoreService.syncOnLogin()` khi người dùng đăng nhập Google (ở chế độ Khách, dữ liệu chỉ lưu cục bộ):
+1. Đọc song song các bản ghi cục bộ (SQLite, SharedPreferences) và tài liệu tương ứng trên Firestore.
+2. Thuật toán hợp nhất hai chiều (*Two-Way Merge*) theo từng loại dữ liệu: nhật ký bài tập và món ăn được hợp theo khóa định danh (bản ghi chỉ có ở một phía được bổ sung sang phía còn lại); nước uống lấy giá trị lớn nhất theo từng ngày; chuỗi ngày (*streak*) lấy giá trị lớn hơn; hồ sơ ưu tiên giá trị trên đám mây nếu có. Kết quả hợp nhất được ghi lại vào bộ nhớ cục bộ và đẩy các bản ghi còn thiếu lên Firestore.
 3. Để không vượt ngưỡng giới hạn 500 thao tác của Firestore SDK, hệ thống tự động ngắt mẻ ghi (*batch chunking*) và gọi `commit()` khi đạt mốc 400 thao tác, sau đó khởi tạo mẻ ghi mới để tiếp tục xử lý.
 
 ---
@@ -217,7 +226,7 @@ Kiến trúc điều hướng được tổ chức thành chuỗi cổng kiểm 
 
 Quy trình điều hướng diễn ra qua năm giai đoạn:
 1. **Khởi tạo tại `main()`**: Khởi tạo kết nối Firebase, nạp ngôn ngữ qua `LocaleService`, kết nối CSDL `AppDatabase` và nạp khóa Gemini AI. Lớp `FitnessTrackerApp` lắng nghe ngôn ngữ qua `ValueListenableBuilder`.
-2. **Cổng xác thực danh tính (`AuthGate`)**: Widget `StreamBuilder` lắng nghe trạng thái từ `FirebaseAuth.instance.authStateChanges()`. Nếu chưa đăng nhập và cờ `isGuestMode == false`, ứng dụng hiển thị `LoginScreen`. Khi người dùng đăng nhập Google hoặc chọn tiếp tục với vai trò khách, hệ thống kiểm tra cờ `hasCompletedOnboarding`. Nếu chưa có hồ sơ ban đầu, ứng dụng chuyển hướng đến `OnboardingProfileScreen` để nhập chiều cao, cân nặng và mục tiêu.
-3. **Cổng bảo vệ sinh trắc học (`BiometricGate`)**: Bao bọc bên ngoài `MainScreen`, đăng ký lắng nghe vòng đời ứng dụng qua `WidgetsBindingObserver`. Khi người dùng đưa ứng dụng từ nền trở lại tiền cảnh (`AppLifecycleState.resumed`), nếu tính năng khóa vân tay đang bật (`biometric_enabled == true`), màn hình khóa xuất hiện và kích hoạt hộp thoại `BiometricPrompt` qua thư viện `local_auth`. Người dùng phải quét vân tay hợp lệ mới có thể vào màn hình chức năng.
+2. **Cổng xác thực danh tính (`AuthGate`)**: Widget `StreamBuilder` lắng nghe trạng thái từ `FirebaseAuth.instance.authStateChanges()`. Nếu chưa đăng nhập và cờ `is_guest_mode` chưa bật, ứng dụng hiển thị `LoginScreen`. Khi người dùng đăng nhập Google hoặc chọn tiếp tục với vai trò khách, hệ thống kiểm tra cờ `hasCompletedOnboarding`. Nếu chưa có hồ sơ ban đầu, ứng dụng chuyển hướng đến `OnboardingProfileScreen` để nhập chiều cao, cân nặng và mục tiêu.
+3. **Cổng bảo vệ sinh trắc học (`BiometricGate`)**: Bao bọc bên ngoài `MainScreen`. Khi ứng dụng khởi động, nếu tính năng khóa vân tay đang bật (`biometric_app_lock_enabled == true`), màn hình khóa xuất hiện và kích hoạt hộp thoại `BiometricPrompt` qua thư viện `local_auth`; người dùng phải xác thực hợp lệ mới vào được màn hình chức năng. `BiometricGate` lắng nghe vòng đời qua `WidgetsBindingObserver` để hỏi lại khi ứng dụng trở lại tiền cảnh trong lúc vẫn đang khóa (chi tiết ở mục 3.8.2).
 4. **Khung điều phối giao diện chính (`MainScreen`)**: Điều phối bốn tab (`Dashboard`, `Workout`, `Food`, `Profile`) bằng `IndexedStack`. Thiết kế này bảo toàn nguyên vẹn trạng thái hiển thị của các màn hình khi người dùng chuyển đổi tab qua dock nổi kính mờ `BackdropFilter`.
-5. **Làm mới phiên khi đăng xuất (`Session Invalidation`)**: Khi đăng xuất tại `ProfileScreen`, phương thức `AuthRepository.logout()` kích hoạt giao dịch xóa trắng 7 bảng SQLite, thiết lập lại SharedPreferences và dọn sạch cache RAM. Hệ thống đồng thời đổi khóa phiên `sessionKey` trên widget `KeyedSubtree` nhằm tiêu hủy toàn bộ cây giao diện cũ, ngăn ngừa nguy cơ rò rỉ dữ liệu cá nhân giữa các phiên làm việc.
+5. **Làm mới phiên khi đăng xuất (`Session Invalidation`)**: Khi đăng xuất tại `ProfileScreen`, phương thức `AuthRepository.logout()` kích hoạt giao dịch xóa trắng 7 bảng SQLite, thiết lập lại SharedPreferences và dọn sạch cache RAM. Hệ thống đồng thời đổi khóa phiên (`sessionKey` của `KeyedSubtree` trong `AuthGate`, `UniqueKey` của các tab trong `MainScreen`) nhằm tiêu hủy toàn bộ cây giao diện cũ, ngăn ngừa nguy cơ rò rỉ dữ liệu cá nhân giữa các phiên làm việc.
