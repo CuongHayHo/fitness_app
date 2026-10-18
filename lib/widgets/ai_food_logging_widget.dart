@@ -1379,11 +1379,16 @@ class _AiFoodLoggingWidgetState extends State<AiFoodLoggingWidget>
                       ),
                     ),
                     const SizedBox(width: 10),
-                    Text(
-                      'P: ${food.protein}g  •  C: ${food.carbs}g  •  F: ${food.fat}g',
-                      style: const TextStyle(
-                        color: AppTheme.textSecondaryColor,
-                        fontSize: 10.5,
+                    // Expanded + ellipsis: dòng macro co lại thay vì tràn khỏi thẻ trên màn hình hẹp
+                    Expanded(
+                      child: Text(
+                        'P: ${food.protein}g  •  C: ${food.carbs}g  •  F: ${food.fat}g',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppTheme.textSecondaryColor,
+                          fontSize: 10.5,
+                        ),
                       ),
                     ),
                   ],

@@ -11,8 +11,12 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
+  // Lịch nhắc định kỳ dùng dải id 1001..1020 (_waterNotificationId + count).
+  // Thông báo tức thì / thử nghiệm phải nằm ngoài dải này: trước đây test dùng 1002
+  // nên bấm "Thử hẹn giờ" sẽ ghi đè và làm mất lịch nhắc 10:00 hằng ngày.
   static const int _waterNotificationId = 1001;
-  static const int _testNotificationId = 1002;
+  static const int _instantNotificationId = 901;
+  static const int _testNotificationId = 902;
   static const String _channelId = 'water_reminder_channel';
   static const String _channelName = 'Water Reminder';
   static const String _channelDescription =
@@ -101,7 +105,7 @@ class NotificationService {
     String body = 'Drink a glass of water (250ml) to stay refreshed!',
   }) async {
     await _notificationsPlugin.show(
-      id: _waterNotificationId,
+      id: _instantNotificationId,
       title: title,
       body: body,
       notificationDetails: _getNotificationDetails(title: title, body: body),

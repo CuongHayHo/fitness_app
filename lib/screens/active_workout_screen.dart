@@ -489,74 +489,17 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    // Expanded + FittedBox: các ô thống kê chia đều, chữ tự thu nhỏ thay vì tràn khỏi hộp thoại
                     children: [
-                      Column(
-                        children: [
-                          const Icon(Icons.local_fire_department, color: Colors.orangeAccent, size: 24),
-                          const SizedBox(height: 4),
-                          Text(
-                            '~$_currentCalories kcal',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                          ),
-                          Text(
-                            LocaleService.tr('burned_label'),
-                            style: const TextStyle(color: Colors.grey, fontSize: 11),
-                          ),
-                        ],
-                      ),
-                      Container(width: 1, height: 35, color: Colors.white12),
-                      Column(
-                        children: [
-                          const Icon(Icons.timer, color: Color(0xFF00C6FF), size: 24),
-                          const SizedBox(height: 4),
-                          Text(
-                            _isRepsMode
-                                ? _formatTime(_elapsedWorkoutSeconds)
-                                : _formatTime(_totalSeconds - _remainingSeconds),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                          ),
-                          Text(
-                            LocaleService.tr('workout_time_label'),
-                            style: const TextStyle(color: Colors.grey, fontSize: 11),
-                          ),
-                        ],
-                      ),
-                      if (_isRepsMode) ...[
-                        Container(width: 1, height: 35, color: Colors.white12),
-                        Column(
-                          children: [
-                            const Icon(Icons.repeat_rounded, color: Color(0xFFFF9F0A), size: 24),
-                            const SizedBox(height: 4),
-                            Text(
-                              '$_targetSets × $_targetReps',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                              ),
-                            ),
-                            const Text(
-                              'Sets × Reps',
-                              style: TextStyle(color: Colors.grey, fontSize: 11),
-                            ),
-                          ],
-                        ),
-                        if (_hasWeight) ...[
-                          Container(width: 1, height: 35, color: Colors.white12),
-                          Column(
+                      Expanded(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Column(
                             children: [
-                              const Icon(Icons.fitness_center_rounded, color: Color(0xFFFF2D55), size: 24),
+                              const Icon(Icons.local_fire_department, color: Colors.orangeAccent, size: 24),
                               const SizedBox(height: 4),
                               Text(
-                                '${_weightKg!.toStringAsFixed(1)} kg',
+                                '~$_currentCalories kcal',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -564,30 +507,113 @@ class _ActiveWorkoutScreenState extends State<ActiveWorkoutScreen> {
                                 ),
                               ),
                               Text(
-                                LocaleService.isVietnamese ? 'Mức tạ' : 'Weight',
+                                LocaleService.tr('burned_label'),
                                 style: const TextStyle(color: Colors.grey, fontSize: 11),
                               ),
                             ],
                           ),
-                        ] else ...[
-                          Container(width: 1, height: 35, color: Colors.white12),
-                          Column(
+                        ),
+                      ),
+                      Container(width: 1, height: 35, color: Colors.white12),
+                      Expanded(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Column(
                             children: [
-                              const Icon(Icons.accessibility_new_rounded, color: Color(0xFF00E5FF), size: 24),
+                              const Icon(Icons.timer, color: Color(0xFF00C6FF), size: 24),
                               const SizedBox(height: 4),
                               Text(
-                                LocaleService.isVietnamese ? 'Tự do' : 'Bodyweight',
+                                _isRepsMode
+                                    ? _formatTime(_elapsedWorkoutSeconds)
+                                    : _formatTime(_totalSeconds - _remainingSeconds),
                                 style: const TextStyle(
-                                  color: Color(0xFF00E5FF),
+                                  color: Colors.white,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 13,
+                                  fontSize: 15,
                                 ),
                               ),
                               Text(
-                                LocaleService.isVietnamese ? 'Hình thức' : 'Type',
+                                LocaleService.tr('workout_time_label'),
                                 style: const TextStyle(color: Colors.grey, fontSize: 11),
                               ),
                             ],
+                          ),
+                        ),
+                      ),
+                      if (_isRepsMode) ...[
+                        Container(width: 1, height: 35, color: Colors.white12),
+                        Expanded(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Column(
+                              children: [
+                                const Icon(Icons.repeat_rounded, color: Color(0xFFFF9F0A), size: 24),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '$_targetSets × $_targetReps',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                const Text(
+                                  'Sets × Reps',
+                                  style: TextStyle(color: Colors.grey, fontSize: 11),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (_hasWeight) ...[
+                          Container(width: 1, height: 35, color: Colors.white12),
+                          Expanded(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Column(
+                                children: [
+                                  const Icon(Icons.fitness_center_rounded, color: Color(0xFFFF2D55), size: 24),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${_weightKg!.toStringAsFixed(1)} kg',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  Text(
+                                    LocaleService.isVietnamese ? 'Mức tạ' : 'Weight',
+                                    style: const TextStyle(color: Colors.grey, fontSize: 11),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ] else ...[
+                          Container(width: 1, height: 35, color: Colors.white12),
+                          Expanded(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Column(
+                                children: [
+                                  const Icon(Icons.accessibility_new_rounded, color: Color(0xFF00E5FF), size: 24),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    LocaleService.isVietnamese ? 'Tự do' : 'Bodyweight',
+                                    style: const TextStyle(
+                                      color: Color(0xFF00E5FF),
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  Text(
+                                    LocaleService.isVietnamese ? 'Hình thức' : 'Type',
+                                    style: const TextStyle(color: Colors.grey, fontSize: 11),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ],
                       ],
