@@ -335,15 +335,9 @@ Cơ chế đánh giá mở khóa huy hiệu (`AchievementService.checkBadges()`)
 
 Bên cạnh 9 huy hiệu trên, thẻ "Huy hiệu thành tích" ở tab Hoạt động (`BadgesAchievementWidget`) hiển thị bốn thử thách luyện tập riêng kèm thanh tiến độ: Chiến binh 10k bước, Bậc thầy Cardio, Chiến binh Bình minh (hoàn thành trước 7:00) và Ngọn lửa bất diệt (chuỗi 7 ngày).
 
-### 4.4.3. Bật/tắt xác thực sinh trắc học vân tay để bảo vệ quyền riêng tư
+### 4.4.3. Khóa ứng dụng bằng sinh trắc học
 
-Dữ liệu sức khỏe và chỉ số thể chất là những thông tin mang tính riêng tư cao. Để bảo vệ dữ liệu này khỏi những truy cập trái phép khi người khác mượn điện thoại, ứng dụng tích hợp cơ chế bảo vệ bằng sinh trắc học thông qua thành phần `BiometricGate` và dịch vụ `BiometricService`.
-
-Phân hệ sử dụng thư viện `local_auth` để kết nối trực tiếp với API `BiometricPrompt` của hệ điều hành Android. Khi người dùng kích hoạt tùy chọn "Khóa ứng dụng bằng sinh trắc học" trong màn hình Cài đặt, trạng thái được lưu vào SharedPreferences. 
-
-Khi bật công tắc, ứng dụng yêu cầu xác thực một lần để xác nhận rồi lưu cờ `biometric_app_lock_enabled = true` vào SharedPreferences. Thành phần `BiometricGate` được bọc quanh cây widget chính: mỗi lần ứng dụng khởi động với cờ này đang bật, nội dung bị che bởi màn hình chờ và hộp thoại vân tay của hệ thống Android xuất hiện; chỉ khi xác thực thành công, cờ `_isLocked` mới được gỡ bỏ. Trên thiết bị thử nghiệm (cảm biến vân tay dưới màn hình), hộp thoại chỉ xuất hiện một lần mỗi lần mở ứng dụng và mở khóa đúng sau khi xác thực.
-
-Hộp thoại `BiometricPrompt` thuộc SystemUI và được bảo vệ chống chụp màn hình, nên ảnh chụp bằng `adb screencap` chỉ cho ra màn hình đen với biểu tượng cảm biến; vì vậy báo cáo không kèm ảnh hộp thoại này.
+Trong thẻ "Bảo mật & báo cáo thể hình" của tab Hồ sơ, người dùng bật công tắc "Khóa bảo mật Sinh trắc học"; ứng dụng xác thực một lần để xác nhận rồi lưu cờ vào SharedPreferences. Từ đó, mỗi lần mở ứng dụng sẽ phải xác thực bằng vân tay hoặc khuôn mặt (cơ chế trình bày ở mục 3.8). Hộp thoại xác thực là cửa sổ hệ thống không cho phép chụp màn hình, nên phần này không có ảnh minh họa.
 
 ![Hình 4.14: Giao diện hồ sơ cá nhân và cài đặt ứng dụng](img/chup-profile-settings.png)
 > CHỤP: Tab Hồ sơ (tab 4) / thông tin người dùng, chọn ngôn ngữ, huy hiệu, đăng nhập Google và Health Connect / chuyển sang tab Profile.

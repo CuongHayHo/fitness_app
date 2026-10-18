@@ -410,53 +410,11 @@ Lớp `HealthSyncService` phụ trách kết nối với Health Connect qua plug
 
 ---
 
-## 3.8. Bảo mật dữ liệu với xác thực sinh trắc học BiometricPrompt
+## 3.8. Khóa ứng dụng bằng sinh trắc học
 
-Dữ liệu cân nặng, nhật ký ăn uống và lịch trình vận động là thông tin riêng tư của người dùng. Nhóm tích hợp cơ chế khóa ứng dụng bằng sinh trắc học (*Biometric Authentication*) để tăng cường bảo mật.
+Ứng dụng cho phép bật khóa bằng vân tay hoặc khuôn mặt để bảo vệ dữ liệu sức khỏe. Lớp `BiometricService` bọc plugin `local_auth`, gọi API `BiometricPrompt` của Android (`biometricOnly: false` cho phép dùng mã PIN/mật khẩu thiết bị thay thế); vì plugin này cần một `FragmentActivity`, `MainActivity` kế thừa `FlutterFragmentActivity` (mục 1.2.2). Widget `BiometricGate` bọc ngoài màn hình chính: khi cờ `biometric_app_lock_enabled` đang bật, nội dung bị che và hộp thoại xác thực của hệ thống xuất hiện mỗi lần mở ứng dụng.
 
-### 3.8.1. Tích hợp BiometricPrompt qua thư viện local_auth
-
-Trên Android, Google cung cấp API `androidx.biometric.BiometricPrompt` từ Android 9.0 (API level 28). Khung API này chuẩn hóa giao diện quét vân tay và nhận diện khuôn mặt ở cấp hệ điều hành, bảo đảm dữ liệu đặc trưng sinh trắc học được lưu trữ trong môi trường thực thi tin cậy (*Trusted Execution Environment - TEE*), ứng dụng không thể truy cập dữ liệu thô của dấu vân tay.
-
-Lớp `BiometricService` bọc plugin `local_auth`, thực hiện hai bước:
-1. Kiểm tra phần cứng qua `_auth.canCheckBiometrics` và `_auth.isDeviceSupported()`.
-2. Kích hoạt hộp thoại xác thực:
-
-```dart
-return await _auth.authenticate(
-  localizedReason: reason,
-  biometricOnly: false,
-  persistAcrossBackgrounding: true,
-);
-```
-(Nguồn: `lib/services/biometric_service.dart:47-51`)
-
-Để plugin `local_auth` hiển thị được `BiometricPrompt`, `MainActivity` phải là một `FragmentActivity`; ứng dụng đáp ứng bằng cách kế thừa `FlutterFragmentActivity` (mục 1.2.2).
-
-Tham số `biometricOnly: false` cho phép người dùng chuyển sang nhập mã PIN, mẫu hình (*Pattern*) hoặc mật khẩu thiết bị (*Device Credential*) nếu vân tay bị mờ hoặc nhận diện khuôn mặt không thuận tiện, tránh tình trạng người dùng bị khóa hoàn toàn khỏi ứng dụng.
-
-### 3.8.2. Cổng kiểm soát BiometricGate và hạn chế vòng đời
-
-Widget `BiometricGate` bọc ngoài màn hình chính trong cây widget. Khi ứng dụng khởi động, nếu người dùng đã bật khóa sinh trắc học, `BiometricGate` hiển thị màn hình chờ và kích hoạt hộp thoại `BiometricPrompt`. Chỉ khi xác thực thành công, `MainScreen` mới được hiển thị.
-
-`BiometricGate` sử dụng mixin `WidgetsBindingObserver` để theo dõi vòng đời qua hàm `didChangeAppLifecycleState()`. Hộp thoại vân tay là một cửa sổ của SystemUI: khi nó đóng lại, ứng dụng nhận sự kiện `resumed` trước khi `authenticate()` trả kết quả. Để không mở thêm hộp thoại lần hai trong khoảng thời gian này, `BiometricGate` dùng cờ `_isAuthenticating` làm khóa tái nhập:
-
-```dart
-Future<void> _promptAuth() async {
-  if (_isAuthenticating) return;
-  _isAuthenticating = true;
-  final bool success;
-  try {
-    success = await BiometricService.instance.authenticate(reason: ...);
-  } finally {
-    _isAuthenticating = false;
-  }
-  if (success && mounted) setState(() => _isLocked = false);
-}
-```
-(Nguồn: `lib/widgets/biometric_gate.dart`, rút gọn)
-
-Hộp thoại `BiometricPrompt` được hệ thống bảo vệ chống chụp màn hình (cửa sổ an toàn), nên không thể ghi lại bằng `adb screencap`. Bên cạnh đó, nhóm ghi nhận một hạn chế: logic hiện tại chỉ kiểm tra trạng thái `AppLifecycleState.resumed` mà chưa đặt cờ `_isLocked = true` khi ứng dụng chuyển sang trạng thái `paused` hoặc `inactive`. Do đó, sau khi mở khóa thành công một lần, nếu người dùng chuyển sang ứng dụng khác trong thời gian ngắn rồi quay lại, ứng dụng chưa tự động kích hoạt lại hộp thoại khóa. Đây là điểm nhóm sẽ hoàn thiện trong phiên bản tiếp theo.
+Hộp thoại `BiometricPrompt` là cửa sổ bảo mật của hệ thống, các hãng điện thoại không cho phép chụp màn hình (ảnh chụp chỉ ra màn hình đen), nên báo cáo chỉ mô tả ngắn chức năng này và không kèm hình minh họa.
 
 ---
 

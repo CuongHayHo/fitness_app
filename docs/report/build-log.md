@@ -3,17 +3,17 @@
 - **Thời điểm thực thi**: 2026-10-11T03:00:00Z
 - **Tệp nguồn mẫu gốc**: `docs/report/goc/ADRnangcaobaocao.docx` (Bảo toàn 100%, không sửa đổi)
 - **Tệp đích tạo lập**: `docs/report/ADRnangcaobaocao_v4.docx`
-- **Kích thước file kết quả**: 12,788,384 bytes
+- **Kích thước file kết quả**: 12,786,403 bytes
 
 ## 1. Thông Số Cấu Trúc Tài Liệu Đã Dựng
 
 | Hạng mục thành phần | Số lượng ghi nhận | Ghi chú kỹ thuật |
 |---|:---:|---|
-| **Tổng số đoạn văn (Paragraphs)** | 714 | Bao gồm tiêu đề, văn bản thường và chú thích |
-| **Tổng số bảng biểu (Tables)** | 56 | Bảng trang bìa, 18 bảng số liệu và khung code block / placeholder |
+| **Tổng số đoạn văn (Paragraphs)** | 699 | Bao gồm tiêu đề, văn bản thường và chú thích |
+| **Tổng số bảng biểu (Tables)** | 54 | Bảng trang bìa, 18 bảng số liệu và khung code block / placeholder |
 | **Tiêu đề cấp 1 (Heading 1)** | 10 | Mở đầu, Cảm ơn, 5 Chương, Tài liệu tham khảo, Phụ lục |
 | **Tiêu đề cấp 2 (Heading 2)** | 38 | Các mục chính 1.1 -> 5.5, Phụ lục A, B, C |
-| **Tiêu đề cấp 3 (Heading 3)** | 53 | Các tiểu mục chuyên sâu |
+| **Tiêu đề cấp 3 (Heading 3)** | 51 | Các tiểu mục chuyên sâu |
 | **Tiêu đề cấp 4 (Heading 4)** | 1 | Tiểu mục phân tích race condition |
 | **Hình minh họa (Figures)** | 33 | 9 sơ đồ PNG thực tế + 14 khung giữ chỗ ảnh chụp |
 | **Bảng số liệu (Tables in text)** | 18 | 18 bảng kỹ thuật, phân quyền, thống kê, phụ lục |
@@ -88,13 +88,13 @@
 
 | Tiêu chuẩn định dạng | Quy chuẩn kỹ thuật | Kết quả ghi nhận | Trạng thái |
 |---|---|:---:|:---:|
-| **Nội dung văn bản (Normal & List)** | Cỡ chữ 14pt (`Pt(14)`) | **1986 runs** | ✅ ĐẠT |
-| **Từ khóa & Code (Consolas)** | Tối thiểu 11pt, inline 12pt (`Pt(11)`/`Pt(12)`) | **1128 runs** (tất cả ≥ 11pt) | ✅ ĐẠT |
+| **Nội dung văn bản (Normal & List)** | Cỡ chữ 14pt (`Pt(14)`) | **1932 runs** | ✅ ĐẠT |
+| **Từ khóa & Code (Consolas)** | Tối thiểu 11pt, inline 12pt (`Pt(11)`/`Pt(12)`) | **1090 runs** (tất cả ≥ 11pt) | ✅ ĐẠT |
 | **Từ khóa sót backtick chưa parse** | Tuyệt đối 0 ký tự backtick sót ngoài code | **0 vi phạm** | ✅ ĐẠT |
-| **Bảng biểu dữ liệu** | Tối thiểu 11pt (`Pt(11)`) | **1196 runs** (tất cả ≥ 11pt) | ✅ ĐẠT |
+| **Bảng biểu dữ liệu** | Tối thiểu 11pt (`Pt(11)`) | **1194 runs** (tất cả ≥ 11pt) | ✅ ĐẠT |
 | **Chú thích hình/bảng (Caption)** | Cỡ chữ 11pt (`Pt(11)`) | **51 runs** (tất cả ≥ 11pt) | ✅ ĐẠT |
 | **Thành phần dưới 11pt (< 11pt)** | Tuyệt đối loại bỏ cỡ 9.5pt, 10pt cũ | **0 vi phạm** | ✅ ĐẠT |
-| **Cấp tiêu đề (Headings 1-4)** | Bảo toàn nguyên vẹn kiểu dáng & cỡ chữ | **10 H1, 38 H2, 53 H3, 1 H4** | ✅ ĐẠT |
+| **Cấp tiêu đề (Headings 1-4)** | Bảo toàn nguyên vẹn kiểu dáng & cỡ chữ | **10 H1, 38 H2, 51 H3, 1 H4** | ✅ ĐẠT |
 
 > **Xác nhận quy chuẩn cỡ chữ**: Toàn bộ văn bản nội dung áp dụng chuẩn 14pt; các từ khóa inline, khối mã nguồn, nội dung bảng, chú thích áp dụng cỡ chữ tối thiểu 11pt (đã loại bỏ hoàn toàn các cỡ 9.5pt, 10pt cũ); các cấp tiêu đề Heading 1, 2, 3 và trang bìa được bảo toàn 100%.
 
