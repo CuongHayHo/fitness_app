@@ -183,7 +183,7 @@ Toàn bộ quá trình lập trình, phân tích mã nguồn, kiểm thử tự 
 - Kiểm thử tự động (*Automated Testing*): Lệnh `flutter test` đạt 123/123 test case vượt qua (100% pass) trên 17 tệp kiểm thử trong thư mục `test/`.
 
 4. *Bản đóng gói và thiết bị thử nghiệm thực tế*:
-- Bản dựng đóng gói: Tệp APK debug kích thước ~204 MB, biên dịch qua lệnh:
+- Bản dựng đóng gói: Tệp APK debug kích thước ~229 MB, biên dịch qua lệnh:
   ```bash
   flutter build apk --debug --dart-define-from-file=.env
   ```

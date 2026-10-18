@@ -437,7 +437,7 @@ _scannerController = MobileScannerController(
   torchEnabled: false,
 );
 ```
-(Nguồn: `lib/widgets/barcode_scanner_sheet.dart:52-56`)
+(Nguồn: `lib/widgets/barcode_scanner_sheet.dart:54-58`)
 
 3. CameraX cung cấp luồng khung hình xem trước hiển thị trên `SurfaceTexture` của Flutter. Bộ phân tích hình ảnh (*ImageAnalysis*) chuyển các khung hình dạng đệm nhị phân tới mô hình ML Kit trên thiết bị để phát hiện các định dạng mã vạch EAN-13, EAN-8, UPC-A, UPC-E.
 4. Khi mã vạch được nhận diện trong `onDetect`, ứng dụng bật cờ `_isProcessing` để bỏ qua các khung hình tiếp theo (tránh gọi API trùng lặp), rồi gọi API `Open Food Facts` để truy vấn thông tin calo, protein, carbohydrate và chất béo. Người dùng chọn hệ số khẩu phần (0.5×–2.0×) và bữa ăn trước khi thêm vào nhật ký.

@@ -172,7 +172,7 @@ Bảng 5.2: Thông số môi trường và kết quả thử nghiệm trên thi�
 | **Dịch vụ hệ thống** | Tích hợp sẵn Google Play Services chính thức |
 | **Phương thức cài đặt** | `adb install` qua cáp USB (*USB debugging*) hoặc gỡ lỗi không dây (*Wireless Debugging*) |
 | **Gói nhị phân thử nghiệm** | APK Debug (`flutter build apk --debug --dart-define-from-file=.env`) |
-| **Dung lượng tệp APK** | Xấp xỉ 204 MB (gói debug chứa biểu tượng gỡ lỗi Dart VM) |
+| **Dung lượng tệp APK** | Xấp xỉ 229 MB (gói debug chứa biểu tượng gỡ lỗi Dart VM) |
 | **Trạng thái khởi chạy** | Ứng dụng mở bình thường, giao diện hiển thị ổn định |
 | **Kiểm tra nhật ký sự cố** | `adb logcat -b crash` không ghi nhận `FATAL EXCEPTION` nào của ứng dụng |
 | **Cảm biến đếm bước** | `step_counter` phần cứng (Wakeup và Non-wakeup), yêu cầu quyền `ACTIVITY_RECOGNITION` |
