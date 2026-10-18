@@ -42,6 +42,8 @@ class _AiFoodLoggingWidgetState extends State<AiFoodLoggingWidget>
 
   List<FoodLogEntry> _loggedFoods = [];
   int _totalCaloriesIn = 0;
+  // Mục tiêu kcal lấy từ hồ sơ (cùng nguồn với thẻ Phân bổ Macro), không hard-code 2000
+  int _targetCalories = 2000;
   Map<String, int> _macros = {'protein': 0, 'carbs': 0, 'fat': 0};
 
   @override
@@ -58,6 +60,7 @@ class _AiFoodLoggingWidgetState extends State<AiFoodLoggingWidget>
 
     _loadFoodData();
     StorageService.foodUpdateNotifier.addListener(_loadFoodData);
+    StorageService.profileUpdateNotifier.addListener(_loadFoodData);
     _initSpeech();
   }
 
@@ -74,11 +77,13 @@ class _AiFoodLoggingWidgetState extends State<AiFoodLoggingWidget>
     final list = await StorageService.getFoodLogsByDate(targetDate);
     final calories = await StorageService.getTotalCaloriesInByDate(targetDate);
     final macros = await StorageService.getTotalMacrosByDate(targetDate);
+    final profile = await StorageService.getUserProfile();
     if (mounted) {
       setState(() {
         _loggedFoods = list;
         _totalCaloriesIn = calories;
         _macros = macros;
+        _targetCalories = profile.targetCalories;
       });
     }
   }
@@ -112,6 +117,7 @@ class _AiFoodLoggingWidgetState extends State<AiFoodLoggingWidget>
   @override
   void dispose() {
     StorageService.foodUpdateNotifier.removeListener(_loadFoodData);
+    StorageService.profileUpdateNotifier.removeListener(_loadFoodData);
     _pulseController.dispose();
     _textController.dispose();
     _speechService.stopListening();
@@ -641,8 +647,9 @@ class _AiFoodLoggingWidgetState extends State<AiFoodLoggingWidget>
 
   @override
   Widget build(BuildContext context) {
-    final double targetCalories = 2000.0;
-    final double calRatio = (_totalCaloriesIn / targetCalories).clamp(0.0, 1.0);
+    final double calRatio = _targetCalories > 0
+        ? (_totalCaloriesIn / _targetCalories).clamp(0.0, 1.0)
+        : 0.0;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -750,7 +757,7 @@ class _AiFoodLoggingWidgetState extends State<AiFoodLoggingWidget>
                       ),
                     ),
                     Text(
-                      '$_totalCaloriesIn / 2,000 kcal',
+                      '$_totalCaloriesIn / $_targetCalories kcal',
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w900,

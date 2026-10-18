@@ -329,28 +329,40 @@ class _ProfileScreenState extends State<ProfileScreen>
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        LocaleService.tr('profile_title'),
-                        style:
-                            Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  // Expanded + FittedBox: tiêu đề dài (VI) tự thu nhỏ, không đẩy nút Sửa hồ sơ ra ngoài màn hình
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            LocaleService.tr('profile_title'),
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: 1.5,
                                   color: AppColors.textPrimary,
                                 ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        LocaleService.tr('profile_subtitle'),
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 12,
+                          ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 2),
+                        Text(
+                          LocaleService.tr('profile_subtitle'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   GestureDetector(
                     onTap: _showEditProfileDialog,
                     behavior: HitTestBehavior.opaque,

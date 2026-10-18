@@ -454,13 +454,19 @@ class _CaloriesChartWidgetState extends State<CaloriesChartWidget> {
               _buildLegendDot(const Color(0xFF00F0FF), LocaleService.tr('chart_legend_in')),
               const SizedBox(width: 14),
               _buildLegendDot(Colors.orangeAccent, LocaleService.tr('chart_legend_out')),
-              const Spacer(),
-              Text(
-                LocaleService.tr('chart_current_dot'),
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Colors.white.withValues(alpha: 0.4),
-                  fontStyle: FontStyle.italic,
+              const SizedBox(width: 10),
+              // Expanded + ellipsis: chú thích phụ co lại thay vì tràn khỏi thẻ trên màn hình hẹp
+              Expanded(
+                child: Text(
+                  LocaleService.tr('chart_current_dot'),
+                  textAlign: TextAlign.end,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.white.withValues(alpha: 0.4),
+                    fontStyle: FontStyle.italic,
+                  ),
                 ),
               ),
             ],

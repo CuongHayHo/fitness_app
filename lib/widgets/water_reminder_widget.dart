@@ -14,10 +14,7 @@ import '../services/achievement_service.dart';
 class WaterReminderWidget extends StatefulWidget {
   final DateTime? selectedDate;
 
-  const WaterReminderWidget({
-    super.key,
-    this.selectedDate,
-  });
+  const WaterReminderWidget({super.key, this.selectedDate});
 
   @override
   State<WaterReminderWidget> createState() => _WaterReminderWidgetState();
@@ -173,7 +170,10 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
         messenger.showSnackBar(
           SnackBar(
             content: Text(
-              LocaleService.tr('water_reminder_enabled_snack', args: {'hours': '$_intervalHours'}),
+              LocaleService.tr(
+                'water_reminder_enabled_snack',
+                args: {'hours': '$_intervalHours'},
+              ),
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             backgroundColor: const Color(0xFF007AFF),
@@ -208,7 +208,12 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(LocaleService.tr('water_reminder_updated_snack', args: {'hours': '$hours'})),
+            content: Text(
+              LocaleService.tr(
+                'water_reminder_updated_snack',
+                args: {'hours': '$hours'},
+              ),
+            ),
             backgroundColor: const Color(0xFF007AFF),
             duration: const Duration(seconds: 2),
           ),
@@ -328,7 +333,11 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
                     ),
                     IconButton(
                       onPressed: () => Navigator.pop(ctx),
-                      icon: const HugeIcon(icon: HugeIcons.strokeRoundedCancel01, color: Colors.white70, size: 20),
+                      icon: const HugeIcon(
+                        icon: HugeIcons.strokeRoundedCancel01,
+                        color: Colors.white70,
+                        size: 20,
+                      ),
                     ),
                   ],
                 ),
@@ -342,7 +351,9 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
                         child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00C6FF)),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Color(0xFF00C6FF),
+                          ),
                         ),
                       );
                     }
@@ -376,19 +387,28 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
                     );
 
                     return ListView.separated(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 16,
+                      ),
                       itemCount: logs.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 10),
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 10),
                       itemBuilder: (context, index) {
                         final item = logs[index];
                         String dateLabel = item.date;
                         if (item.date == todayStr) {
-                          dateLabel = '${LocaleService.tr('water_day_today')} (${item.date})';
+                          dateLabel =
+                              '${LocaleService.tr('water_day_today')} (${item.date})';
                         } else if (item.date == yesterdayStr) {
-                          dateLabel = '${LocaleService.tr('water_day_yesterday')} (${item.date})';
+                          dateLabel =
+                              '${LocaleService.tr('water_day_yesterday')} (${item.date})';
                         }
 
-                        final progress = (item.cups / _goalCups).clamp(0.0, 1.0);
+                        final progress = (item.cups / _goalCups).clamp(
+                          0.0,
+                          1.0,
+                        );
                         final isGoal = item.isGoalReached;
 
                         return Container(
@@ -398,7 +418,9 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color: isGoal
-                                  ? const Color(0xFF00FFA3).withValues(alpha: 0.4)
+                                  ? const Color(
+                                      0xFF00FFA3,
+                                    ).withValues(alpha: 0.4)
                                   : Colors.white.withValues(alpha: 0.08),
                               width: 1,
                             ),
@@ -407,7 +429,8 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Row(
                                     children: [
@@ -440,8 +463,12 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
                                     ),
                                     decoration: BoxDecoration(
                                       color: isGoal
-                                          ? const Color(0xFF00FFA3).withValues(alpha: 0.15)
-                                          : Colors.white.withValues(alpha: 0.06),
+                                          ? const Color(
+                                              0xFF00FFA3,
+                                            ).withValues(alpha: 0.15)
+                                          : Colors.white.withValues(
+                                              alpha: 0.06,
+                                            ),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Row(
@@ -449,7 +476,8 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
                                       children: [
                                         HugeIcon(
                                           icon: isGoal
-                                              ? HugeIcons.strokeRoundedCheckmarkCircle01
+                                              ? HugeIcons
+                                                    .strokeRoundedCheckmarkCircle01
                                               : HugeIcons.strokeRoundedClock01,
                                           size: 12,
                                           color: isGoal
@@ -459,8 +487,12 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
                                         const SizedBox(width: 4),
                                         Text(
                                           isGoal
-                                              ? LocaleService.tr('water_goal_achieved')
-                                              : LocaleService.tr('water_goal_in_progress'),
+                                              ? LocaleService.tr(
+                                                  'water_goal_achieved',
+                                                )
+                                              : LocaleService.tr(
+                                                  'water_goal_in_progress',
+                                                ),
                                           style: TextStyle(
                                             fontSize: 11,
                                             fontWeight: FontWeight.bold,
@@ -476,7 +508,8 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
                               ),
                               const SizedBox(height: 10),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     '${item.volumeMl} / 2000 ml',
@@ -534,10 +567,7 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
       cornerRadius: 26,
       cornerSmoothing: 0.65,
       padding: const EdgeInsets.all(20),
-      gradientColors: const [
-        Color(0xFF131828),
-        Color(0xFF0D101C),
-      ],
+      gradientColors: const [Color(0xFF131828), Color(0xFF0D101C)],
       borderColor: const Color(0xFF00C6FF).withValues(alpha: 0.25),
       glowColor: const Color(0xFF007AFF),
       glowRadius: 20,
@@ -552,7 +582,10 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
                 height: 44,
                 decoration: ShapeDecoration(
                   shape: SmoothRectangleBorder(
-                    borderRadius: SmoothBorderRadius(cornerRadius: 14, cornerSmoothing: 0.6),
+                    borderRadius: SmoothBorderRadius(
+                      cornerRadius: 14,
+                      cornerSmoothing: 0.6,
+                    ),
                   ),
                   gradient: const LinearGradient(
                     colors: [Color(0xFF00E5FF), Color(0xFF0072FF)],
@@ -590,10 +623,7 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
                     const SizedBox(height: 2),
                     Text(
                       LocaleService.tr('water_reminder_sub'),
-                      style: AppTheme.font(
-                        fontSize: 11,
-                        color: Colors.white54,
-                      ),
+                      style: AppTheme.font(fontSize: 11, color: Colors.white54),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -605,18 +635,30 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
               BouncingTap(
                 onTap: _showWaterHistoryModal,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: ShapeDecoration(
                     shape: SmoothRectangleBorder(
-                      borderRadius: SmoothBorderRadius(cornerRadius: 10, cornerSmoothing: 0.6),
-                      side: BorderSide(color: const Color(0xFF00C6FF).withValues(alpha: 0.3)),
+                      borderRadius: SmoothBorderRadius(
+                        cornerRadius: 10,
+                        cornerSmoothing: 0.6,
+                      ),
+                      side: BorderSide(
+                        color: const Color(0xFF00C6FF).withValues(alpha: 0.3),
+                      ),
                     ),
                     color: const Color(0xFF00C6FF).withValues(alpha: 0.1),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const HugeIcon(icon: HugeIcons.strokeRoundedHistory, size: 14, color: Color(0xFF00C6FF)),
+                      const HugeIcon(
+                        icon: HugeIcons.strokeRoundedHistory,
+                        size: 14,
+                        color: Color(0xFF00C6FF),
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         LocaleService.tr('water_history_btn'),
@@ -636,7 +678,9 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
                 child: Switch(
                   value: _isEnabled,
                   activeThumbColor: const Color(0xFF00F0FF),
-                  activeTrackColor: const Color(0xFF007AFF).withValues(alpha: 0.6),
+                  activeTrackColor: const Color(
+                    0xFF007AFF,
+                  ).withValues(alpha: 0.6),
                   inactiveThumbColor: Colors.white38,
                   inactiveTrackColor: Colors.white10,
                   onChanged: _toggleReminder,
@@ -652,7 +696,10 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
             padding: const EdgeInsets.all(16),
             decoration: ShapeDecoration(
               shape: SmoothRectangleBorder(
-                borderRadius: SmoothBorderRadius(cornerRadius: 18, cornerSmoothing: 0.6),
+                borderRadius: SmoothBorderRadius(
+                  cornerRadius: 18,
+                  cornerSmoothing: 0.6,
+                ),
                 side: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
               ),
               color: Colors.white.withValues(alpha: 0.035),
@@ -662,44 +709,57 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        RichText(
-                          text: TextSpan(
-                            children: [
-                              TextSpan(
-                                text: '$totalMl',
-                                style: AppTheme.font(
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.w900,
-                                  color: const Color(0xFF00E5FF),
-                                  letterSpacing: -0.5,
-                                ),
+                    // Expanded + FittedBox: số ml 4 chữ số (1500, 2000) tự thu nhỏ
+                    // thay vì đẩy cụm nút −/+1 Cốc tràn khỏi thẻ
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: RichText(
+                              text: TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: '$totalMl',
+                                    style: AppTheme.font(
+                                      fontSize: 30,
+                                      fontWeight: FontWeight.w900,
+                                      color: const Color(0xFF00E5FF),
+                                      letterSpacing: -0.5,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: ' / $goalMl ml',
+                                    style: AppTheme.font(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white38,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              TextSpan(
-                                text: ' / $goalMl ml',
-                                style: AppTheme.font(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white38,
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          LocaleService.tr('water_cups_count',
-                              args: {'cups': '$_cups', 'goal': '$_goalCups'}),
-                          style: AppTheme.font(
-                            fontSize: 12,
-                            color: Colors.white60,
-                            fontWeight: FontWeight.w500,
+                          const SizedBox(height: 3),
+                          Text(
+                            LocaleService.tr(
+                              'water_cups_count',
+                              args: {'cups': '$_cups', 'goal': '$_goalCups'},
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTheme.font(
+                              fontSize: 12,
+                              color: Colors.white60,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     // Liquid Stepper Bar
                     Row(
                       children: [
@@ -723,7 +783,9 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
                             child: HugeIcon(
                               icon: HugeIcons.strokeRoundedMinusSign,
                               size: 18,
-                              color: _cups > 0 ? Colors.white70 : Colors.white24,
+                              color: _cups > 0
+                                  ? Colors.white70
+                                  : Colors.white24,
                             ),
                           ),
                         ),
@@ -732,10 +794,16 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
                         BouncingTap(
                           onTap: _addCup,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 9,
+                            ),
                             decoration: ShapeDecoration(
                               shape: SmoothRectangleBorder(
-                                borderRadius: SmoothBorderRadius(cornerRadius: 14, cornerSmoothing: 0.6),
+                                borderRadius: SmoothBorderRadius(
+                                  cornerRadius: 14,
+                                  cornerSmoothing: 0.6,
+                                ),
                                 side: BorderSide(
                                   color: Colors.white.withValues(alpha: 0.35),
                                   width: 1,
@@ -748,7 +816,9 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
                               ),
                               shadows: [
                                 BoxShadow(
-                                  color: const Color(0xFF00F0FF).withValues(alpha: 0.38),
+                                  color: const Color(
+                                    0xFF00F0FF,
+                                  ).withValues(alpha: 0.38),
                                   blurRadius: 14,
                                   spreadRadius: -1,
                                   offset: const Offset(0, 3),
@@ -758,7 +828,11 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const HugeIcon(icon: HugeIcons.strokeRoundedAdd01, size: 18, color: Colors.black),
+                                const HugeIcon(
+                                  icon: HugeIcons.strokeRoundedAdd01,
+                                  size: 18,
+                                  color: Colors.black,
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
                                   LocaleService.tr('add_cup_btn'),
@@ -827,7 +901,9 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
                       child: HugeIcon(
                         icon: HugeIcons.strokeRoundedDroplet,
                         size: 14,
-                        color: isDrunk ? const Color(0xFF00F0FF) : Colors.white24,
+                        color: isDrunk
+                            ? const Color(0xFF00F0FF)
+                            : Colors.white24,
                       ),
                     );
                   }),
@@ -863,7 +939,10 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
                             padding: const EdgeInsets.symmetric(vertical: 6),
                             decoration: ShapeDecoration(
                               shape: SmoothRectangleBorder(
-                                borderRadius: SmoothBorderRadius(cornerRadius: 10, cornerSmoothing: 0.6),
+                                borderRadius: SmoothBorderRadius(
+                                  cornerRadius: 10,
+                                  cornerSmoothing: 0.6,
+                                ),
                                 side: BorderSide(
                                   color: isSelected
                                       ? const Color(0xFF00F0FF)
@@ -872,12 +951,16 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
                                 ),
                               ),
                               color: isSelected
-                                  ? const Color(0xFF00F0FF).withValues(alpha: 0.18)
+                                  ? const Color(
+                                      0xFF00F0FF,
+                                    ).withValues(alpha: 0.18)
                                   : Colors.white.withValues(alpha: 0.04),
                               shadows: isSelected
                                   ? [
                                       BoxShadow(
-                                        color: const Color(0xFF00F0FF).withValues(alpha: 0.25),
+                                        color: const Color(
+                                          0xFF00F0FF,
+                                        ).withValues(alpha: 0.25),
                                         blurRadius: 8,
                                       ),
                                     ]
@@ -888,8 +971,12 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
                               '${hours}h',
                               style: TextStyle(
                                 fontSize: 12,
-                                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                                color: isSelected ? const Color(0xFF00F0FF) : Colors.white60,
+                                fontWeight: isSelected
+                                    ? FontWeight.w800
+                                    : FontWeight.w500,
+                                color: isSelected
+                                    ? const Color(0xFF00F0FF)
+                                    : Colors.white60,
                               ),
                             ),
                           ),
@@ -914,15 +1001,24 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: ShapeDecoration(
                       shape: SmoothRectangleBorder(
-                        borderRadius: SmoothBorderRadius(cornerRadius: 10, cornerSmoothing: 0.6),
-                        side: BorderSide(color: const Color(0xFF00C6FF).withValues(alpha: 0.2)),
+                        borderRadius: SmoothBorderRadius(
+                          cornerRadius: 10,
+                          cornerSmoothing: 0.6,
+                        ),
+                        side: BorderSide(
+                          color: const Color(0xFF00C6FF).withValues(alpha: 0.2),
+                        ),
                       ),
                       color: const Color(0xFF00C6FF).withValues(alpha: 0.06),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const HugeIcon(icon: HugeIcons.strokeRoundedNotification01, size: 14, color: Color(0xFF00C6FF)),
+                        const HugeIcon(
+                          icon: HugeIcons.strokeRoundedNotification01,
+                          size: 14,
+                          color: Color(0xFF00C6FF),
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           LocaleService.tr('send_now_btn'),
@@ -945,15 +1041,24 @@ class _WaterReminderWidgetState extends State<WaterReminderWidget>
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: ShapeDecoration(
                       shape: SmoothRectangleBorder(
-                        borderRadius: SmoothBorderRadius(cornerRadius: 10, cornerSmoothing: 0.6),
-                        side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                        borderRadius: SmoothBorderRadius(
+                          cornerRadius: 10,
+                          cornerSmoothing: 0.6,
+                        ),
+                        side: BorderSide(
+                          color: Colors.white.withValues(alpha: 0.1),
+                        ),
                       ),
                       color: Colors.white.withValues(alpha: 0.03),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const HugeIcon(icon: HugeIcons.strokeRoundedClock01, size: 14, color: Colors.white60),
+                        const HugeIcon(
+                          icon: HugeIcons.strokeRoundedClock01,
+                          size: 14,
+                          color: Colors.white60,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           LocaleService.tr('test_timer_btn'),

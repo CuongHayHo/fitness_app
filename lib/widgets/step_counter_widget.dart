@@ -24,7 +24,7 @@ class StepCounterWidget extends StatefulWidget {
   State<StepCounterWidget> createState() => _StepCounterWidgetState();
 }
 
-class _StepCounterWidgetState extends State<StepCounterWidget> {
+class _StepCounterWidgetState extends State<StepCounterWidget> with WidgetsBindingObserver {
   static const methodChannel = MethodChannel('com.example.fitness_tracker/service');
   static const eventChannel = EventChannel('com.example.fitness_tracker/steps');
 
@@ -32,6 +32,7 @@ class _StepCounterWidgetState extends State<StepCounterWidget> {
   double _userWeight = 70.0;
   double _userHeight = 175.0;
   StreamSubscription? _stepSubscription;
+  bool _trackingStarted = false;
 
   bool _isToday(DateTime d) {
     final now = DateTime.now();
@@ -41,6 +42,7 @@ class _StepCounterWidgetState extends State<StepCounterWidget> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadSavedSteps();
     _initStepCounter();
     StorageService.stepUpdateNotifier.addListener(_loadSavedSteps);
@@ -57,6 +59,7 @@ class _StepCounterWidgetState extends State<StepCounterWidget> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _stepSubscription?.cancel();
     StorageService.stepUpdateNotifier.removeListener(_loadSavedSteps);
     StorageService.profileUpdateNotifier.removeListener(_loadSavedSteps);
@@ -80,36 +83,60 @@ class _StepCounterWidgetState extends State<StepCounterWidget> {
     }
   }
 
+  /// Hộp thoại quyền đóng lại → app resumed: nếu quyền đã được cấp mà dịch vụ chưa chạy
+  /// (lần cài đầu, request() bị chồng hoặc widget dựng lại giữa chừng) thì khởi chạy bù.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && !_trackingStarted) {
+      Permission.activityRecognition.isGranted.then((granted) {
+        if (granted && mounted && !_trackingStarted) _startTracking();
+      });
+    }
+  }
+
   Future<void> _initStepCounter() async {
     // Xin quyền Activity Recognition
-    var status = await Permission.activityRecognition.request();
+    PermissionStatus status;
+    try {
+      status = await Permission.activityRecognition.request();
+    } catch (e) {
+      // permission_handler ném lỗi nếu đang có một yêu cầu quyền khác chưa xong;
+      // khi đó didChangeAppLifecycleState sẽ khởi chạy lại sau khi hộp thoại đóng.
+      debugPrint("Activity recognition request failed: $e");
+      return;
+    }
     if (status.isGranted) {
-      // Khởi động Foreground Service trên Android để đếm bước ngầm
-      try {
-        await methodChannel.invokeMethod('startService');
-      } catch (e) {
-        debugPrint("Failed to start step service: ${e.toString()}");
-      }
-
-      // Lắng nghe luồng dữ liệu cảm biến phần cứng liên tục
-      _stepSubscription?.cancel();
-      _stepSubscription = eventChannel.receiveBroadcastStream().listen((dynamic event) async {
-        if (event is int) {
-          // Tính toán và lưu trữ mốc bước chân ngày mới (kể cả khi đã tắt app)
-          final calculated = await StorageService.processHardwareSteps(event);
-          final targetDate = widget.selectedDate ?? DateTime.now();
-          if (mounted && _isToday(targetDate)) {
-            setState(() {
-              _currentSteps = calculated;
-            });
-          }
-        }
-      }, onError: (dynamic error) {
-        debugPrint("StepCounter Event Error: $error");
-      });
+      await _startTracking();
     } else {
       debugPrint("Activity recognition permission denied");
     }
+  }
+
+  Future<void> _startTracking() async {
+    _trackingStarted = true;
+    // Khởi động Foreground Service trên Android để đếm bước ngầm
+    try {
+      await methodChannel.invokeMethod('startService');
+    } catch (e) {
+      debugPrint("Failed to start step service: ${e.toString()}");
+    }
+
+    // Lắng nghe luồng dữ liệu cảm biến phần cứng liên tục
+    _stepSubscription?.cancel();
+    _stepSubscription = eventChannel.receiveBroadcastStream().listen((dynamic event) async {
+      if (event is int) {
+        // Tính toán và lưu trữ mốc bước chân ngày mới (kể cả khi đã tắt app)
+        final calculated = await StorageService.processHardwareSteps(event);
+        final targetDate = widget.selectedDate ?? DateTime.now();
+        if (mounted && _isToday(targetDate)) {
+          setState(() {
+            _currentSteps = calculated;
+          });
+        }
+      }
+    }, onError: (dynamic error) {
+      debugPrint("StepCounter Event Error: $error");
+    });
   }
 
   @override

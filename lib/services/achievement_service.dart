@@ -191,7 +191,9 @@ class AchievementService {
           if (loggedMealsCount >= 3 || todayFood.length >= 3) isUnlocked = true;
           break;
         case 'fat_burner':
-          final deficit = -todaySummary.netBalance;
+          // Chưa ghi món nào thì lượng nạp = 0 là thiếu dữ liệu, không phải thâm hụt thật
+          // (trước đây huy hiệu tự mở khóa ngay lần đầu mở app do BMR tích lũy > 500 kcal).
+          final deficit = todayFood.isEmpty ? 0 : -todaySummary.netBalance;
           progress = deficit > 0 ? (deficit / 500.0).clamp(0.0, 1.0) : 0.0;
           progressLabel = '${deficit > 0 ? deficit : 0}/500 kcal';
           if (deficit >= 500) isUnlocked = true;

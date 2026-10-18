@@ -38,8 +38,16 @@ class FoodInfo {
 }
 
 class GeminiService {
-  static const String _modelName = 'gemini-2.0-flash';
-  static const String _fallbackModelName = 'gemini-1.5-flash';
+  static const String _modelName = 'gemini-3.8-flash';
+  static const String _fallbackModelName = 'gemini-3.7-flash';
+  // Tầng dự phòng cuối: model ổn định. Ngày 18/10/2026 cả 3.8 và 3.7 treo > 90 s với yêu cầu ảnh
+  // (quá tải phía Google) trong khi 2.5-flash trả kết quả ~6 s.
+  static const String _stableFallbackModelName = 'gemini-2.5-flash';
+  static const List<String> _modelChain = [
+    _modelName,
+    _fallbackModelName,
+    _stableFallbackModelName,
+  ];
   static String _runtimeApiKey = '';
 
   /// Khóa Gemini API với thứ tự ưu tiên an toàn:
@@ -72,25 +80,31 @@ class GeminiService {
     );
   }
 
-  /// Gọi API với cơ chế tự động chuyển sang model dự phòng nếu model chính gặp sự cố
+  /// Gọi API theo chuỗi 3.8 → 3.7 → 2.5-flash, chuyển tầng khi model lỗi hoặc treo.
+  /// Mỗi tầng trước tầng cuối có timeout riêng (`primaryTimeout`): model treo im lặng
+  /// (không ném lỗi) vẫn được bỏ qua, thay vì để timeout tổng của nơi gọi nuốt mất lượt dự phòng.
   static Future<GenerateContentResponse> _generateWithFallback(
     List<Content> contents, {
     Content? systemInstruction,
+    Duration primaryTimeout = const Duration(seconds: 20),
   }) async {
-    try {
-      return await _createModel(
-        modelName: _modelName,
-        systemInstruction: systemInstruction,
-      ).generateContent(contents);
-    } catch (primaryErr) {
-      debugPrint(
-        "⚠️ [GeminiService] Model chính ($_modelName) lỗi: $primaryErr. Tự động chuyển đổi sang dự phòng ($_fallbackModelName)...",
-      );
-      return await _createModel(
-        modelName: _fallbackModelName,
-        systemInstruction: systemInstruction,
-      ).generateContent(contents);
+    for (var i = 0; i < _modelChain.length; i++) {
+      final model = _modelChain[i];
+      final isLast = i == _modelChain.length - 1;
+      try {
+        final request = _createModel(
+          modelName: model,
+          systemInstruction: systemInstruction,
+        ).generateContent(contents);
+        return isLast ? await request : await request.timeout(primaryTimeout);
+      } catch (err) {
+        if (isLast) rethrow;
+        debugPrint(
+          "⚠️ [GeminiService] Model $model lỗi: $err. Tự động chuyển đổi sang dự phòng (${_modelChain[i + 1]})...",
+        );
+      }
     }
+    throw StateError('Chuỗi model Gemini rỗng');
   }
 
   /// Gọi API Streaming với cơ chế tự động chuyển sang model dự phòng nếu gặp sự cố
@@ -98,33 +112,37 @@ class GeminiService {
     List<Content> contents, {
     Content? systemInstruction,
   }) async* {
-    try {
-      final responseStream = _createModel(
-        modelName: _modelName,
-        systemInstruction: systemInstruction,
-      ).generateContentStream(contents);
-      await for (final chunk in responseStream) {
-        if (chunk.text != null && chunk.text!.isNotEmpty) {
-          yield chunk.text!;
-        }
-      }
-    } catch (primaryErr) {
-      debugPrint(
-        "⚠️ [GeminiService Stream] Model chính ($_modelName) lỗi: $primaryErr. Chuyển đổi sang dự phòng ($_fallbackModelName)...",
-      );
+    for (var i = 0; i < _modelChain.length; i++) {
+      final model = _modelChain[i];
+      final isLast = i == _modelChain.length - 1;
+      var yieldedAny = false;
       try {
-        final fallbackStream = _createModel(
-          modelName: _fallbackModelName,
+        var responseStream = _createModel(
+          modelName: model,
           systemInstruction: systemInstruction,
         ).generateContentStream(contents);
-        await for (final chunk in fallbackStream) {
+        // Chờ tối đa 20s giữa các chunk; model treo thì chuyển sang tầng kế tiếp
+        if (!isLast) {
+          responseStream = responseStream.timeout(const Duration(seconds: 20));
+        }
+        await for (final chunk in responseStream) {
           if (chunk.text != null && chunk.text!.isNotEmpty) {
+            yieldedAny = true;
             yield chunk.text!;
           }
         }
-      } catch (fallbackErr) {
-        debugPrint("Gemini Stream Error: $fallbackErr");
-        yield "Lỗi kết nối với AI ($fallbackErr). Vui lòng thử lại sau!";
+        return;
+      } catch (err) {
+        // Đã trả một phần câu trả lời thì không chạy lại từ đầu bằng model khác (tránh lặp nội dung)
+        if (yieldedAny) return;
+        if (isLast) {
+          debugPrint("Gemini Stream Error: $err");
+          yield "Lỗi kết nối với AI ($err). Vui lòng thử lại sau!";
+          return;
+        }
+        debugPrint(
+          "⚠️ [GeminiService Stream] Model $model lỗi: $err. Chuyển đổi sang dự phòng (${_modelChain[i + 1]})...",
+        );
       }
     }
   }
@@ -433,9 +451,10 @@ MANDATORY: Return ONLY one valid JSON object matching the schema below without a
 }
 ''';
 
-      final response = await _generateWithFallback([Content.text(prompt)]).timeout(
-        const Duration(seconds: 12),
-      );
+      final response = await _generateWithFallback(
+        [Content.text(prompt)],
+        primaryTimeout: const Duration(seconds: 8),
+      ).timeout(const Duration(seconds: 25));
 
       final resText = response.text;
       if (resText != null) {
@@ -504,8 +523,9 @@ MANDATORY: Return ONLY a valid JSON object matching this exact schema:
           DataPart(mimeType, imageBytes),
         ])
       ];
+      // 20s cho model chính + phần còn lại cho model dự phòng
       final response = await _generateWithFallback(content)
-          .timeout(const Duration(seconds: 30));
+          .timeout(const Duration(seconds: 60));
 
       final resText = response.text;
       if (resText != null) {

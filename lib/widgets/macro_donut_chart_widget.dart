@@ -20,7 +20,8 @@ class _MacroDonutChartWidgetState extends State<MacroDonutChartWidget> {
   int _protein = 0;
   int _carbs = 0;
   int _fat = 0;
-  String _currentGoal = 'balanced'; // 'cutting', 'bulking', 'balanced', 'endurance'
+  String _currentGoal =
+      'balanced'; // 'cutting', 'bulking', 'balanced', 'endurance'
   UserProfile? _userProfile;
 
   @override
@@ -51,7 +52,9 @@ class _MacroDonutChartWidgetState extends State<MacroDonutChartWidget> {
         _protein = macros['protein'] ?? 0;
         _carbs = macros['carbs'] ?? 0;
         _fat = macros['fat'] ?? 0;
-        _currentGoal = profile.fitnessGoal.isNotEmpty ? profile.fitnessGoal : goal;
+        _currentGoal = profile.fitnessGoal.isNotEmpty
+            ? profile.fitnessGoal
+            : goal;
       });
     }
   }
@@ -105,59 +108,77 @@ class _MacroDonutChartWidgetState extends State<MacroDonutChartWidget> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF00F0FF).withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: const Color(0xFF00F0FF).withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: const HugeIcon(
-                      icon: HugeIcons.strokeRoundedPieChart,
-                      color: Color(0xFF00F0FF),
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        LocaleService.tr('macro_breakdown_title'),
-                        style: AppTheme.font(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
+              // Expanded: tiêu đề co lại (ellipsis) để chip % mục tiêu không bị đẩy tràn khỏi thẻ
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF00F0FF).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFF00F0FF).withValues(alpha: 0.3),
                         ),
                       ),
-                      Text(
-                        LocaleService.tr('macro_breakdown_subtitle'),
-                        style: AppTheme.font(
-                          fontSize: 12,
-                          color: Colors.white54,
-                        ),
+                      child: const HugeIcon(
+                        icon: HugeIcons.strokeRoundedPieChart,
+                        color: Color(0xFF00F0FF),
+                        size: 20,
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            LocaleService.tr('macro_breakdown_title'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTheme.font(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text(
+                            LocaleService.tr('macro_breakdown_subtitle'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTheme.font(
+                              fontSize: 12,
+                              color: Colors.white54,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: Colors.white10),
                 ),
                 child: Text(
-                  LocaleService.tr('target_progress', args: {'percent': '${(calProgress * 100).toInt()}'}),
+                  LocaleService.tr(
+                    'target_progress',
+                    args: {'percent': '${(calProgress * 100).toInt()}'},
+                  ),
                   style: AppTheme.font(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: calProgress > 1.0 ? Colors.redAccent : const Color(0xFF00F0FF),
+                    color: calProgress > 1.0
+                        ? Colors.redAccent
+                        : const Color(0xFF00F0FF),
                   ),
                 ),
               ),
@@ -368,7 +389,9 @@ class _MacroDonutChartWidgetState extends State<MacroDonutChartWidget> {
                       title,
                       style: AppTheme.font(
                         fontSize: 12,
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                        fontWeight: isSelected
+                            ? FontWeight.w700
+                            : FontWeight.w500,
                         color: isSelected ? Colors.white : Colors.white60,
                       ),
                       overflow: TextOverflow.ellipsis,
@@ -407,11 +430,7 @@ class _MacroDonutChartWidgetState extends State<MacroDonutChartWidget> {
           children: [
             Row(
               children: [
-                HugeIcon(
-                  icon: hugeIcon,
-                  size: 14,
-                  color: color,
-                ),
+                HugeIcon(icon: hugeIcon, size: 14, color: color),
                 const SizedBox(width: 6),
                 Text(
                   label,
@@ -436,10 +455,7 @@ class _MacroDonutChartWidgetState extends State<MacroDonutChartWidget> {
                   ),
                   TextSpan(
                     text: ' / ${target}g',
-                    style: AppTheme.font(
-                      fontSize: 11,
-                      color: Colors.white38,
-                    ),
+                    style: AppTheme.font(fontSize: 11, color: Colors.white38),
                   ),
                 ],
               ),
